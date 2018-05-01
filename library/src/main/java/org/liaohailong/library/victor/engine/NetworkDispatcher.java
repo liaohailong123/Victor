@@ -42,8 +42,8 @@ class NetworkDispatcher extends Thread {
                 Request<?> request = mNetworkQueue.take();
 
                 //use cookie if need
-                String cacheFileName = request.getCacheFileName();
-                String cookie = Victor.getInstance().getConfig().getCookie(cacheFileName);
+                String cacheKey = request.getCacheKey();
+                String cookie = Victor.getInstance().getConfig().getCookie(cacheKey);
                 if (request.isShouldCookie()) {
                     HttpField httpHeader = request.getHttpHeader();
                     httpHeader.addParam(HttpInfo.COOKIE, cookie);
@@ -72,7 +72,7 @@ class NetworkDispatcher extends Thread {
 
                 //save cookie
                 cookie = response.getCookie();
-                Victor.getInstance().getConfig().addCookie(cacheFileName, cookie);
+                Victor.getInstance().getConfig().saveCookie(cacheKey, cookie);
             } catch (Exception e) {
                 e.printStackTrace();
             }

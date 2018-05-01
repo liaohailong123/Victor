@@ -81,16 +81,16 @@ public class CacheDispatcher extends Thread {
     }
 
     private boolean isExpire(Request<?> request) {
-        String cacheKey = request.getCacheFileName();
+        String cacheKey = request.getCacheKey();
         VictorConfig config = Victor.getInstance().getConfig();
         CacheInfo cacheInfo = config.getCacheInfo(cacheKey);
-        return cacheInfo.isExpired();
+        return cacheInfo == null || cacheInfo.isExpired();
     }
 
     private boolean refreshNeeded(Request<?> request) {
-        String cacheKey = request.getCacheFileName();
+        String cacheKey = request.getCacheKey();
         VictorConfig config = Victor.getInstance().getConfig();
         CacheInfo cacheInfo = config.getCacheInfo(cacheKey);
-        return cacheInfo.refreshNeeded();
+        return cacheInfo == null || cacheInfo.refreshNeeded();
     }
 }

@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,16 +40,40 @@ import java.util.TreeMap;
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-public class Util {
-
-    private static final int FILE_STREAM_BUFFER_SIZE = 32;
-
-    private static final Gson GSON = new Gson();
-    private static final JsonParser PARSER = new JsonParser();
+public final class Util {
 
     private Util() throws IllegalAccessException {
         throw new IllegalAccessException("no instance!");
     }
+
+    private static final int FILE_STREAM_BUFFER_SIZE = 32;
+    private static final Gson GSON = new Gson();
+    private static final JsonParser PARSER = new JsonParser();
+
+    public static String hashKeyFromUrl(String url){
+        String cacheKey;
+        try {
+            final MessageDigest mDigest = MessageDigest.getInstance("MD5");
+            mDigest.update(url.getBytes());
+            cacheKey = byteToHexString(mDigest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            cacheKey = String.valueOf(url.hashCode());
+        }
+        return  cacheKey;
+    }
+
+    private static String byteToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte aByte : bytes) {
+            String hex = Integer.toHexString(0xFF & aByte);//得到十六进制字符串
+            if (hex.length() == 1) {
+                sb.append('0');
+            }
+            sb.append(hex);
+        }
+        return  sb.toString();
+    }
+
 
     public static String createQueryStringForParameters(Map<String, String> parameters) {
         StringBuilder sb = new StringBuilder();

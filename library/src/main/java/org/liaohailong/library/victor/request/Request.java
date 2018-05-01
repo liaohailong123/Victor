@@ -100,12 +100,13 @@ public abstract class Request<T> implements Comparable<Request<T>> {
         return mShouldCookie;
     }
 
-    public String getCacheFileName() {
+    public String getCacheKey() {
         String url = getUrl();
         String httpMethod = getHttpMethod();
         HttpField postParams = getPostParams();
         Map<String, String> params = postParams.getParams();
-        return Util.getCacheFileName(url, httpMethod, params);
+        String cacheFileName = Util.getCacheFileName(url, httpMethod, params);
+        return Util.hashKeyFromUrl(cacheFileName);
     }
 
     public void cancel() {

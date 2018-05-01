@@ -46,31 +46,33 @@ public class MainActivity extends AppCompatActivity {
                     });
 
             mIndex = 0;
-            for (int i = 0; i < 1000; i++) {
-                doRequest();
+            for (int i = 0; i < 4000; i++) {
+                doRequest(i);
             }
         }
     }
 
-    private void doRequest() {
+    private void doRequest(int offset) {
+        int wallId = 2000 + offset;
+        final String wallIdStr = String.valueOf(wallId);
         Request<?> request = Victor.getInstance().newRequest()
                 .doPost()
                 .setUrl(url)
                 .setUseCache(true)
                 .setUseCookie(true)
-                .addParam("wall", "6685")
+                .addParam("wall", wallIdStr)
                 .setCallback(new HttpCallback<JsonObject>() {
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(JsonObject result) {
                         mIndex++;
-                        mTextView.setText("onSuccess index = " + mIndex + "   \n" + result.toString());
+                        mTextView.setText("onSuccess wallId = " + wallIdStr + "   \n" + result.toString());
                     }
 
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onFailure(int code, String error) {
-                        mTextView.setText("onFailure index = " + mIndex);
+                        mTextView.setText("onFailure wallId = " + wallIdStr);
                     }
                 });
 //        request.cancel();

@@ -12,8 +12,9 @@ import java.util.Set;
 public class HttpField {
     private Map<String, String> mParams = new HashMap<>();
 
-    public void addParam(String header, String value) {
+    public HttpField addParam(String header, String value) {
         mParams.put(header, value);
+        return this;
     }
 
     HttpField addParams(Map<String, String> headers) {

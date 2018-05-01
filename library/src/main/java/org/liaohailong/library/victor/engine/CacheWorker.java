@@ -1,17 +1,15 @@
 package org.liaohailong.library.victor.engine;
 
-import android.text.TextUtils;
-
 import org.liaohailong.library.victor.Response;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
+import org.liaohailong.library.victor.lrucache.DiskLruCache;
 import org.liaohailong.library.victor.request.Request;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
 /**
@@ -20,27 +18,42 @@ import java.net.HttpURLConnection;
  */
 
 class CacheWorker {
-    private static String mRootDirectoryPath;
+    private static final int DISK_CACHE_INDEX = 0;
+    private static DiskLruCache mDiskLruCache;
+    private final static String mRootDirectoryPath;
+
+    static {
+        File rootDirectory = Victor.getInstance().getConfig().getRootDirectory();
+        mRootDirectoryPath = rootDirectory.getAbsolutePath();
+
+        int maxDiskCacheBytes = Victor.getInstance().getConfig().getMaxDiskCacheBytes();
+        try {
+            mDiskLruCache = DiskLruCache.open(rootDirectory, 1, 1, maxDiskCacheBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static String getRootDirectoryPath() {
-        if (TextUtils.isEmpty(mRootDirectoryPath)) {
-            File rootDirectory = Victor.getInstance().getConfig().getRootDirectory();
-            mRootDirectoryPath = rootDirectory.getAbsolutePath();
-        }
         return mRootDirectoryPath;
     }
 
+    private static DiskLruCache getDiskLruCache() {
+        return mDiskLruCache;
+    }
+
     static void saveCache(Request<?> request, Response<?> response) {
-        String cacheFileName = request.getCacheFileName();
-        File file = new File(getRootDirectoryPath(), cacheFileName);
-        String rawResult = response.getRawResult();
+        String cacheKey = request.getCacheKey();
         BufferedOutputStream bos = null;
         try {
-            bos = new BufferedOutputStream(new FileOutputStream(file));
+            DiskLruCache.Editor edit = getDiskLruCache().edit(cacheKey);
+            OutputStream outputStream = edit.newOutputStream(DISK_CACHE_INDEX);
+            String rawResult = response.getRawResult();
+            bos = new BufferedOutputStream(outputStream);
             bos.write(rawResult.getBytes());
             bos.flush();
             CacheInfo cacheInfo = response.getCacheInfo();
-            Victor.getInstance().getConfig().addCacheInfo(cacheFileName, cacheInfo);
+            Victor.getInstance().getConfig().addCacheInfo(cacheKey, cacheInfo);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -49,18 +62,13 @@ class CacheWorker {
     }
 
     static <T> Response<T> getCache(Request<T> request) {
-        String cacheFileName = request.getCacheFileName();
-        File file = new File(getRootDirectoryPath(), cacheFileName);
-
-        BufferedReader br;
-        StringBuilder sb = new StringBuilder();
+        String cacheKey = request.getCacheKey();
         try {
-            br = new BufferedReader(new FileReader(file));
-            String readLine;
-            while ((readLine = br.readLine()) != null) {
-                sb.append(readLine);
+            DiskLruCache.Snapshot snapshot = getDiskLruCache().get(cacheKey);
+            if (snapshot == null) {
+                return null;
             }
-            String result = sb.toString();
+            String result = snapshot.getString(DISK_CACHE_INDEX);
             return request.generateResponse()
                     .setCode(HttpURLConnection.HTTP_OK)
                     .setNetworkTimeMs(0)

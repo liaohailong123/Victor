@@ -74,7 +74,7 @@ public class Victor {
         private String httpMethod = HttpInfo.GET;
         private Map<String, String> headers = new HashMap<>();
         private Map<String, String> params = new HashMap<>();
-        private RequestPriority requestPriority = RequestPriority.HIGHT;
+        private RequestPriority requestPriority = RequestPriority.MIDDLE;
         private int connectTimeOut = 0;
         private int readTimeOut = 0;
         private IEngine mEngine = mEngineManager.getTextEngine();

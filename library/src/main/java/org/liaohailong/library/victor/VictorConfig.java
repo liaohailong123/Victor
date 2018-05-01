@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class VictorConfig {
     private static final String DEFAULT_CACHE_DIR = "victor";
-    private int mMaxDiskCacheBytes = 5 * 1024 * 1024;
+    private int mMaxDiskCacheBytes = 10 * 1024 * 1024;
 
     private Context mApplicationContext;
     private Map<String, String> mDefaultHeaders = new HashMap<>();
@@ -101,7 +101,7 @@ public class VictorConfig {
         return Util.jsonStringToObject(jsonString, CacheInfo.class);
     }
 
-    public void addCookie(String key, String cookie) {
+    public void saveCookie(String key, String cookie) {
         if (sp != null) {
             sp.edit().putString(key, cookie).apply();
         }
@@ -121,6 +121,10 @@ public class VictorConfig {
 
     Map<String, String> getDefaultParams() {
         return mDefaultParams;
+    }
+
+    public int getMaxDiskCacheBytes() {
+        return mMaxDiskCacheBytes;
     }
 
     public File getRootDirectory() {
