@@ -27,6 +27,7 @@ public class VictorConfig {
     private HttpConnectSetting mHttpConnectSetting = new HttpConnectSetting();
     private File mRootDirectory;
     private SharedPreferences sp;
+    private boolean isLogEnable = false;
 
     //拦截器
     private LinkedList<Interceptor> mInterceptors = new LinkedList<>();
@@ -82,6 +83,15 @@ public class VictorConfig {
         return this;
     }
 
+    public VictorConfig setLogEnable(boolean logEnable) {
+        isLogEnable = logEnable;
+        return this;
+    }
+
+    public boolean isLogEnable() {
+        return isLogEnable;
+    }
+
     LinkedList<Interceptor> getInterceptors() {
         return mInterceptors;
     }
@@ -109,6 +119,16 @@ public class VictorConfig {
 
     public String getCookie(String key) {
         return sp.getString(key, "");
+    }
+
+    public void saveFileLoadingLength(String key, long length) {
+        if (sp != null) {
+            sp.edit().putLong(key, length).apply();
+        }
+    }
+
+    public long getFileLoadingLength(String key) {
+        return sp.getLong(key, 0);
     }
 
     HttpConnectSetting getHttpConnectSetting() {

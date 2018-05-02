@@ -73,4 +73,25 @@ public abstract class HttpCallback<T> implements Callback<T> {
     protected String getResultListKey() {
         return "list";
     }
+
+
+    @Override
+    public void onPreLoading(String url) {
+
+    }
+
+    @Override
+    public void onLoading(String url, String tempFilePath, int progress) {
+
+    }
+
+    @Override
+    public void onPostLoaded(String url, String filePath) {
+
+    }
+
+    @Override
+    public void onLoadingError(String url, String info) {
+
+    }
 }

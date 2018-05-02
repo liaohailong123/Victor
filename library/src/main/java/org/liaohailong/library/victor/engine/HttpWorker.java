@@ -31,7 +31,7 @@ class HttpWorker<Type> {
         return new HttpWorker<>(request);
     }
 
-    private HttpWorker(Request<Type> request) {
+    HttpWorker(Request<Type> request) {
         mRequest = request;
     }
 
@@ -84,7 +84,7 @@ class HttpWorker<Type> {
         }
     }
 
-    private void setConnection(HttpURLConnection connect) {
+    void setConnection(HttpURLConnection connect) {
         try {
             String httpMethod = mRequest.getHttpMethod();
             connect.setRequestMethod(httpMethod);
@@ -99,7 +99,7 @@ class HttpWorker<Type> {
         }
     }
 
-    private void addHeaders(HttpURLConnection connection) {
+    void addHeaders(HttpURLConnection connection) {
         HttpField httpHeader = mRequest.getHttpHeader();
 
         for (Map.Entry<String, String> entry : httpHeader.entrySet()) {
@@ -112,7 +112,7 @@ class HttpWorker<Type> {
         }
     }
 
-    private void postParamsIfNeed(HttpURLConnection connection) {
+    void postParamsIfNeed(HttpURLConnection connection) {
         HttpField httpParams = mRequest.getPostParams();
         Map<String, String> params = httpParams.getParams();
         if (params.isEmpty()) {

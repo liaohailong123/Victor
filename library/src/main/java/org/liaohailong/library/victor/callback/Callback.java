@@ -12,4 +12,12 @@ public interface Callback<T> {
     void onSuccess(T result);
 
     void onFailure(int code, String error);
+
+    void onPreLoading(String url);
+
+    void onLoading(String url, String tempFilePath, int progress);
+
+    void onPostLoaded(String url, String filePath);
+
+    void onLoadingError(String url, String info);
 }

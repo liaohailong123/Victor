@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
             victorConfig.setCacheMaxSize(50 * 1024 * 1024)
                     .setConnectTimeout(3 * 1000)
                     .setReadTimeout(3 * 1000)
+                    .setLogEnable(true)
                     .addInterceptor(new Interceptor() {
                         @Override
                         public void process(Request<?> request) {

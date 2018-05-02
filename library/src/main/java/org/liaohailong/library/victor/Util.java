@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Xml;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import org.liaohailong.library.victor.engine.CacheInfo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
@@ -388,5 +390,42 @@ public final class Util {
         return false;
     }
 
+    /**
+     * 创建文件（如果不存在）
+     *
+     * @param file 目标文件
+     */
+    public static void createFileIfMissed(File file) {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                boolean delete = file.delete();
+            }
+        }
+        if (!file.exists()) {
+            try {
+                boolean mkdir = file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
+    /**
+     * 文件或目录重命名。如果失败，则打出error级别的log
+     *
+     * @param srcFile 原始文件或目录
+     * @param dstFile 重命名后的文件或目录
+     * @return 成功与否
+     */
+    public static boolean renameTo(File srcFile, @Nullable File dstFile) {
+        if (srcFile == null || dstFile == null) {
+            return false;
+        }
+        if (!srcFile.renameTo(dstFile)) {
+            Log.e("Victor", "FileUtil cannot rename " + srcFile + " to " + dstFile);
+            return false;
+        }
+
+        return true;
+    }
 }

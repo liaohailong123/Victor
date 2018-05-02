@@ -6,6 +6,8 @@ package org.liaohailong.library.victor;
  */
 
 public class HttpInfo {
+    public static final String HTTP = "http";
+
     public static final String UTF_8 = "UTF-8";
 
     public static final String GET = "GET";
