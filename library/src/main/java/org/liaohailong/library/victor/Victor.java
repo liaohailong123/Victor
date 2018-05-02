@@ -8,6 +8,7 @@ import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.engine.EngineManager;
 import org.liaohailong.library.victor.engine.IEngine;
 import org.liaohailong.library.victor.interceptor.Interceptor;
+import org.liaohailong.library.victor.request.Request;
 import org.liaohailong.library.victor.request.TextRequest;
 
 import java.util.HashMap;
@@ -142,7 +143,7 @@ public class Victor {
             return this;
         }
 
-        public <T> TextRequest<T> setCallback(Callback<T> callback) {
+        public <T> Request<T> setCallback(Callback<T> callback) {
             if (TextUtils.isEmpty(url)) {
                 throw new IllegalArgumentException(" url can not be empty!");
             }
