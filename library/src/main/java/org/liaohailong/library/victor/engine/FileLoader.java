@@ -13,8 +13,6 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -65,23 +63,15 @@ class FileLoader<Type> extends HttpWorker<Type> {
                 return downLoad(lastPosition, maxProgress);
             } else {
                 urlConnection.disconnect();
-                Response<Type> response = mRequest.generateResponse();
-                response.setCode(HttpURLConnection.HTTP_BAD_REQUEST)
-                        .setResult("code = " + responseCode)
-                        .setCallback(mRequest.getCallback());
                 onLoadingError("code = " + responseCode);
-                return response;
+                return null;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Response<Type> response = mRequest.generateResponse();
-            response.setCode(HttpURLConnection.HTTP_BAD_REQUEST)
-                    .setResult(e.toString())
-                    .setCallback(mRequest.getCallback());
             mRequest.setCallback(null);
             mRequest = null;
             onLoadingError(e.toString());
-            return response;
+            return null;
         }
     }
 
@@ -89,6 +79,9 @@ class FileLoader<Type> extends HttpWorker<Type> {
         InputStream inputStream = null;
         RandomAccessFile randomAccessFile = null;
         try {
+            if (mRequest.isCanceled()) {
+                return null;
+            }
             String url = mRequest.getUrl();
             HttpURLConnection urlConnection = (HttpURLConnection) new URL(url).openConnection();
             setConnection(urlConnection);
@@ -99,14 +92,7 @@ class FileLoader<Type> extends HttpWorker<Type> {
             urlConnection.setRequestProperty("Range", "bytes=" + lastPosition + "-" + maxLength);
             int code = urlConnection.getResponseCode();
             if (code >= HttpURLConnection.HTTP_BAD_REQUEST) {
-                Response<Type> response = mRequest.generateResponse();
-                response.setCode(HttpURLConnection.HTTP_BAD_REQUEST)
-                        .setResult("code = " + code)
-                        .setCallback(mRequest.getCallback());
-                InputStream errorStream = urlConnection.getErrorStream();
-                String errorInfo = Util.streamToString(errorStream);
-                onLoadingError("code = " + code + " errorInfo = " + errorInfo);
-                return response;
+                return null;
             }
             switch (code) {
                 case HttpURLConnection.HTTP_PARTIAL://请求部分网络成功
@@ -116,17 +102,6 @@ class FileLoader<Type> extends HttpWorker<Type> {
                     break;
             }
             inputStream = urlConnection.getInputStream();
-
-            Map<String, List<String>> headerFields = urlConnection.getHeaderFields();
-            Map<String, String> convertHeaders = Util.convertHeaders(headerFields);
-            CacheInfo cacheInfo = Util.parseCacheHeaders(convertHeaders);
-            String setCookie = convertHeaders.get(HttpInfo.SET_COOKIE);
-            Response<Type> response = mRequest.generateResponse();
-            response.setCode(code)
-                    .setResult("")
-                    .setCacheInfo(cacheInfo)
-                    .setCookie(setCookie)
-                    .setCallback(mRequest.getCallback());
 
             String tempPath = getTempPath(url);
             File file = new File(tempPath);
@@ -148,7 +123,10 @@ class FileLoader<Type> extends HttpWorker<Type> {
                 //手动打断线程执行
                 boolean interrupted = Thread.interrupted();
                 if (interrupted) {
-                    return response;
+                    return null;
+                }
+                if (mRequest.isCanceled()) {
+                    return null;
                 }
             }
             String path = getPath(url);
@@ -156,15 +134,10 @@ class FileLoader<Type> extends HttpWorker<Type> {
             urlConnection.disconnect();
             //加载完毕
             onPostLoaded(path);
-            return response;
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
-            Response<Type> response = mRequest.generateResponse();
-            response.setCode(HttpURLConnection.HTTP_BAD_REQUEST)
-                    .setResult(e.toString())
-                    .setCallback(mRequest.getCallback());
-            onLoadingError(e.toString());
-            return response;
+            return null;
         } finally {
             Util.close(inputStream);
             Util.close(randomAccessFile);
@@ -177,7 +150,7 @@ class FileLoader<Type> extends HttpWorker<Type> {
         return getPath(url) + TEMP;
     }
 
-    private String getPath(String url) {
+    static String getPath(String url) {
         String path;
         if (url.startsWith(HttpInfo.HTTP)) {
             String fileName = Util.hashKeyFromUrl(url);
@@ -197,17 +170,17 @@ class FileLoader<Type> extends HttpWorker<Type> {
         return path;
     }
 
-    private boolean isLoaded(String tempPath) {
+    static boolean isLoaded(String tempPath) {
         File file = new File(tempPath);
         return file.exists() && file.isFile();
     }
 
     private void onPreLoading() {
         if (mDeliver != null && mRequest != null) {
+            final Callback<Type> callback = mRequest.getCallback();
             mDeliver.postResponse(new Runnable() {
                 @Override
                 public void run() {
-                    Callback<Type> callback = mRequest.getCallback();
                     if (callback != null) {
                         callback.onPreLoading(mRequest.getUrl());
                     }
@@ -218,12 +191,13 @@ class FileLoader<Type> extends HttpWorker<Type> {
 
     private void onLoading(final String tempPath, final int progress) {
         if (mDeliver != null && mRequest != null) {
+            final String url = mRequest.getUrl();
+            final Callback<Type> callback = mRequest.getCallback();
             mDeliver.postResponse(new Runnable() {
                 @Override
                 public void run() {
-                    Callback<Type> callback = mRequest.getCallback();
                     if (callback != null) {
-                        callback.onLoading(mRequest.getUrl(), tempPath, progress);
+                        callback.onLoading(url, tempPath, progress);
                     }
                 }
             });

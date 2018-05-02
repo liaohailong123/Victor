@@ -12,9 +12,10 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class TextEngine extends AbEngine {
 
+    //开关标记
+    private boolean isStart = false;
 
     private final PriorityBlockingQueue<Request<?>> mCacheQueue;
-
     private final PriorityBlockingQueue<Request<?>> mNetworkQueue;
 
     private NetworkDispatcher[] mNetworkDispatchers;
@@ -44,6 +45,10 @@ public class TextEngine extends AbEngine {
 
     @Override
     public void start() {
+        if (isStart) {
+            return;
+        }
+        isStart = true;
         quiteAllDispatchers();
         mNetworkDispatchers = new NetworkDispatcher[mSize];
         for (NetworkDispatcher mNetworkDispatcher : mNetworkDispatchers) {
@@ -75,12 +80,13 @@ public class TextEngine extends AbEngine {
     @Override
     public void clearRequest() {
         mNetworkQueue.clear();
+        mCacheQueue.clear();
     }
 
     @Override
     public void release() {
-        mNetworkQueue.clear();
-        mCacheQueue.clear();
+        clearRequest();
         quiteAllDispatchers();
+        isStart = false;
     }
 }

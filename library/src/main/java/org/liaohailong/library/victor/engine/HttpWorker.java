@@ -89,7 +89,7 @@ class HttpWorker<Type> {
             String httpMethod = mRequest.getHttpMethod();
             connect.setRequestMethod(httpMethod);
             connect.setDoInput(true);
-            connect.setDoOutput(TextUtils.equals(HttpInfo.POST, httpMethod));
+            connect.setDoOutput(mRequest.isPost());
 
             HttpConnectSetting httpConnectSetting = mRequest.getHttpConnectSetting();
             connect.setConnectTimeout(httpConnectSetting.getConnectTimeout());
@@ -130,6 +130,10 @@ class HttpWorker<Type> {
         }
         if (!hasContentType) {
             connection.addRequestProperty(HttpInfo.CONTENT_TYPE, HttpInfo.X_WWW_FORM_URLENCODE);
+        }
+
+        if (!mRequest.isPost()) {
+            return;
         }
 
         String postParameters = Util.createQueryStringForParameters(params);

@@ -11,28 +11,13 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
-import org.liaohailong.library.victor.HttpInfo;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.VictorConfig;
 import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.HttpCallback;
-import org.liaohailong.library.victor.engine.CacheInfo;
 import org.liaohailong.library.victor.interceptor.Interceptor;
 import org.liaohailong.library.victor.request.Request;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -93,8 +78,6 @@ public class MainActivity extends AppCompatActivity {
                             Log.i("Victor", request.toString());
                         }
                     });
-            //启动文本数据网络请求引擎
-            Victor.getInstance().getEngineManager().fire();
 
             /*refreshStartTime();
             for (int i = 0; i < 4000; i++) {
@@ -167,5 +150,11 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         init();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Victor.getInstance().restore();
     }
 }

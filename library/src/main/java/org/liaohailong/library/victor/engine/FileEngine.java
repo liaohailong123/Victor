@@ -2,11 +2,14 @@ package org.liaohailong.library.victor.engine;
 
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.LogMan;
+import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.request.Request;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,6 +43,14 @@ public class FileEngine extends AbEngine {
 
     @Override
     public void addRequest(final Request<?> request) {
+        //本地有缓存文件
+        if (checkCache(request)) {
+            return;
+        }
+        //避免重复请求
+        if (mFutures.containsKey(request) || mCachingQueue.contains(request)) {
+            return;
+        }
         //把控任务数量
         int currentSize = mFutures.size();
         if (currentSize >= mSize) {
@@ -50,6 +61,17 @@ public class FileEngine extends AbEngine {
         Runnable runnable = new FileRequestRunnable(request);
         Future<?> submit = mExecutorService.submit(runnable);
         mFutures.put(request, submit);
+    }
+
+    private boolean checkCache(Request<?> request) {
+        String url = request.getUrl();
+        String path = FileLoader.getPath(url);
+        boolean loaded = FileLoader.isLoaded(path);
+        if (loaded) {
+            Callback<?> callback = request.getCallback();
+            callback.onPostLoaded(url, path);
+        }
+        return loaded;
     }
 
     private final class FileRequestRunnable implements Runnable {
@@ -91,7 +113,8 @@ public class FileEngine extends AbEngine {
 
     @Override
     public void removeRequest(Request<?> request) {
-        if (mFutures.containsKey(request)) {
+        if (!request.isCanceled() && mFutures.containsKey(request)) {
+            request.cancel();
             Future<?> future = mFutures.get(request);
             if (!future.isCancelled() || !future.isDone()) {
                 boolean cancel = future.cancel(true);
@@ -109,6 +132,7 @@ public class FileEngine extends AbEngine {
     public void clearRequest() {
         for (Map.Entry<Request<?>, Future<?>> entry : mFutures.entrySet()) {
             Request<?> request = entry.getKey();
+            request.cancel();
             Future<?> future = entry.getValue();
             if (!future.isCancelled() || !future.isDone()) {
                 boolean cancel = future.cancel(true);
@@ -124,7 +148,7 @@ public class FileEngine extends AbEngine {
         clearRequest();
         if (mExecutorService != null) {
             List<Runnable> runnableList = mExecutorService.shutdownNow();
-            LogMan.i("FileEngine release() runnables = " + runnableList.toString());
+            LogMan.i("FileEngine restore() runnables = " + runnableList.toString());
             mExecutorService = null;
         }
     }

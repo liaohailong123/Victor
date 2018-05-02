@@ -18,13 +18,12 @@ import java.util.Map;
 /**
  * Describe as: 基于HttpUrlConnection封装的网络请求库
  * 基本功能：
- * 1，绑定Activity or Fragment的生命周期                (未完成)
- * 2，手动移除网络队列中的任务（文件下载/上传除外）
- * 3，上传文件、下载文件（多线程断点下载）             (未完成)
- * 4，仿Volley的万箭齐发式请求（轻量级任务）
- * 5，数据缓存，减少请求网络的频率，从而优化流量费用
- * 6，自由修改全局统一的Http请求首部字段
- * 7，全局统一的拦截器
+ * 1，上传文件、下载文件（多线程断点下载）             (未完成)
+ * 2，仿Volley的万箭齐发式请求（轻量级任务）
+ * 3，手动移除网络队列中的任务（文件下载/上传除外）
+ * 4，数据缓存，减少请求网络的频率，从而优化流量费用
+ * 5，自由修改全局统一的Http请求首部字段
+ * 6，全局统一的拦截器
  * Created by LiaoHaiLong on 2018/4/30.
  */
 
@@ -60,11 +59,6 @@ public class Victor {
         return mEngineManager;
     }
 
-    public Victor addInterceptor(Interceptor interceptor) {
-        mVictorConfig.addInterceptor(interceptor);
-        return this;
-    }
-
     public LinkedList<Interceptor> getInterceptors() {
         return mVictorConfig.getInterceptors();
     }
@@ -75,6 +69,10 @@ public class Victor {
 
     public FileRequestBuilder newFileRequest() {
         return new FileRequestBuilder();
+    }
+
+    public void restore() {
+        mEngineManager.flameOut();
     }
 
     public abstract class RequestBuilder {
@@ -185,6 +183,7 @@ public class Victor {
 
             if (mEngine == null) {
                 mEngine = getEngine();
+                mEngine.start();
             }
             mEngine.addRequest(request);
             return request;

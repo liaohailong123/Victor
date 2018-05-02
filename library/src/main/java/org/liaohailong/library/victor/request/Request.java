@@ -1,7 +1,9 @@
 package org.liaohailong.library.victor.request;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
+import org.liaohailong.library.victor.HttpInfo;
 import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.HttpConnectSetting;
 import org.liaohailong.library.victor.HttpField;
@@ -36,17 +38,20 @@ public class Request<T> implements Comparable<Request<T>> {
     //请求引擎
     private IEngine mEngine;
 
+    //开关标记位
+    private volatile boolean isCanceled = false;
+
     public Request(RequestPriority requestPriority,
-            int order,
-            boolean shouldCache,
-            boolean shouldCookie,
-            String url,
-            String httpMethod,
-            HttpField httpHeader,
-            HttpField httpField,
-            HttpConnectSetting httpConnectSetting,
-            Callback<T> callback,
-            IEngine engine) {
+                   int order,
+                   boolean shouldCache,
+                   boolean shouldCookie,
+                   String url,
+                   String httpMethod,
+                   HttpField httpHeader,
+                   HttpField httpField,
+                   HttpConnectSetting httpConnectSetting,
+                   Callback<T> callback,
+                   IEngine engine) {
         mRequestPriority = requestPriority;
         mOrder = order;
         mShouldCache = shouldCache;
@@ -66,6 +71,10 @@ public class Request<T> implements Comparable<Request<T>> {
 
     public String getHttpMethod() {
         return mHttpMethod;
+    }
+
+    public boolean isPost() {
+        return TextUtils.equals(HttpInfo.POST, getHttpMethod());
     }
 
     public HttpField getHttpHeader() {
@@ -100,6 +109,10 @@ public class Request<T> implements Comparable<Request<T>> {
         return mShouldCookie;
     }
 
+    public boolean isCanceled() {
+        return isCanceled;
+    }
+
     public String getCacheKey() {
         String url = getUrl();
         String httpMethod = getHttpMethod();
@@ -110,6 +123,7 @@ public class Request<T> implements Comparable<Request<T>> {
     }
 
     public void cancel() {
+        isCanceled = true;
         mEngine.removeRequest(this);
     }
 
