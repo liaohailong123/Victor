@@ -14,12 +14,12 @@ public class HttpConnectSetting {
         mReadTimeout = 2 * 1000;
     }
 
-    public HttpConnectSetting setConnectTimeout(int mConnectTimeout) {
+    HttpConnectSetting setConnectTimeout(int mConnectTimeout) {
         this.mConnectTimeout = mConnectTimeout;
         return this;
     }
 
-    public HttpConnectSetting setReadTimeout(int mReadTimeout) {
+    HttpConnectSetting setReadTimeout(int mReadTimeout) {
         this.mReadTimeout = mReadTimeout;
         return this;
     }

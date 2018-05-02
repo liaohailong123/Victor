@@ -19,7 +19,7 @@ import java.util.Map;
  * Describe as: 基于HttpUrlConnection封装的网络请求库
  * 基本功能：
  * 1，绑定Activity or Fragment的生命周期                (未完成)
- * 2，手动移除网络队列中的任务（文件下载/上传除外）    (未完成)
+ * 2，手动移除网络队列中的任务（文件下载/上传除外）
  * 3，上传文件、下载文件（多线程断点下载）             (未完成)
  * 4，仿Volley的万箭齐发式请求（轻量级任务）
  * 5，数据缓存，减少请求网络的频率，从而优化流量费用
@@ -46,7 +46,6 @@ public class Victor {
 
     @MainThread
     public VictorConfig initConfig(Context context) {
-        mEngineManager.fire();
         if (mVictorConfig == null) {
             mVictorConfig = new VictorConfig(context);
         }
@@ -55,6 +54,10 @@ public class Victor {
 
     public VictorConfig getConfig() {
         return mVictorConfig;
+    }
+
+    public EngineManager getEngineManager() {
+        return mEngineManager;
     }
 
     public Victor addInterceptor(Interceptor interceptor) {
@@ -66,11 +69,11 @@ public class Victor {
         return mVictorConfig.getInterceptors();
     }
 
-    public RequestBuilder newRequest() {
-        return new RequestBuilder();
+    public TextRequestBuilder newTextRequest() {
+        return new TextRequestBuilder();
     }
 
-    public final class RequestBuilder {
+    public abstract class RequestBuilder {
         private String url;
         private String httpMethod = HttpInfo.GET;
         private Map<String, String> headers = new HashMap<>();
@@ -78,7 +81,7 @@ public class Victor {
         private RequestPriority requestPriority = RequestPriority.MIDDLE;
         private int connectTimeOut = 0;
         private int readTimeOut = 0;
-        private IEngine mEngine = mEngineManager.getTextEngine();
+        private IEngine mEngine;
         private boolean useCache = false;
         private boolean useCookie = false;
 
@@ -96,17 +99,6 @@ public class Victor {
             httpMethod = HttpInfo.POST;
             return this;
         }
-
-        public RequestBuilder switchTextEngine() {
-            mEngine = mEngineManager.getTextEngine();
-            return this;
-        }
-
-        public RequestBuilder switchFileEngine() {
-            //TODO 切换成文件请求引擎
-            return this;
-        }
-
 
         public RequestBuilder addHeader(String header, String value) {
             headers.put(header, value);
@@ -165,7 +157,7 @@ public class Victor {
                     .setConnectTimeout(connectTimeOut > 0 ? connectTimeOut : mDefaultHttpConnectSetting.getConnectTimeout())
                     .setReadTimeout(readTimeOut > 0 ? readTimeOut : mDefaultHttpConnectSetting.getReadTimeout());
 
-            TextRequest<T> tTextRequest = new TextRequest<>(requestPriority,
+            Request<T> request = new TextRequest<>(requestPriority,
                     order,
                     useCache,
                     useCookie,
@@ -176,11 +168,26 @@ public class Victor {
                     httpConnectSetting,
                     callback,
                     mEngine);
-            if (mEngine != null) {
-                mEngine.addRequest(tTextRequest);
+
+            if (mEngine == null) {
+                mEngine = getEngine();
             }
-            return tTextRequest;
+            mEngine.addRequest(request);
+            return request;
+        }
+
+        protected abstract IEngine getEngine();
+    }
+
+
+    public final class TextRequestBuilder extends RequestBuilder {
+
+        @Override
+        protected IEngine getEngine() {
+            return mEngineManager.getTextEngine();
         }
     }
+
+
 }
 

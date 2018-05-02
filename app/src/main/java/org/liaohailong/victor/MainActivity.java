@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import org.liaohailong.library.victor.HttpInfo;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
+import org.liaohailong.library.victor.VictorConfig;
 import org.liaohailong.library.victor.callback.HttpCallback;
 import org.liaohailong.library.victor.engine.CacheInfo;
 import org.liaohailong.library.victor.interceptor.Interceptor;
@@ -79,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
         if (Util.requestPermissionIfNeed(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, "", 0)) {
-            Victor.getInstance()
-                    .initConfig(getApplicationContext())
-                    .setCacheMaxSize(50 * 1024 * 1024)
+            //初始化基本配置
+            VictorConfig victorConfig = Victor.getInstance().initConfig(getApplicationContext());
+            victorConfig.setCacheMaxSize(50 * 1024 * 1024)
                     .setConnectTimeout(3 * 1000)
                     .setReadTimeout(3 * 1000)
                     .addInterceptor(new Interceptor() {
@@ -90,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.i("Victor", request.toString());
                         }
                     });
+            //启动文本数据网络请求引擎
+            Victor.getInstance().getEngineManager().fire();
 
             refreshStartTime();
             for (int i = 0; i < 4000; i++) {
@@ -189,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
     private void doRequest(int offset) {
         int wallId = 2000 + offset;
         final String wallIdStr = String.valueOf(wallId);
-        Request<?> request = Victor.getInstance().newRequest()
+        Request<JsonObject> request = Victor.getInstance().newTextRequest()
                 .doPost()
                 .setUrl(url)
                 .setUseCache(true)

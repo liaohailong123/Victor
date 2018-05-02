@@ -10,9 +10,8 @@ import java.util.concurrent.PriorityBlockingQueue;
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-public class TextEngine implements IEngine {
+public class TextEngine extends AbEngine {
 
-    private final Deliver mDeliver;
 
     private final PriorityBlockingQueue<Request<?>> mCacheQueue;
 
@@ -20,13 +19,12 @@ public class TextEngine implements IEngine {
 
     private NetworkDispatcher[] mNetworkDispatchers;
     private CacheDispatcher mCacheDispatcher;
-    private int mSize = 1;
+
 
     TextEngine(Deliver deliver, int size) {
-        mDeliver = deliver;
+        super(deliver, size);
         mCacheQueue = new PriorityBlockingQueue<>();
         mNetworkQueue = new PriorityBlockingQueue<>();
-        mSize = size;
     }
 
     private void quiteAllDispatchers() {
