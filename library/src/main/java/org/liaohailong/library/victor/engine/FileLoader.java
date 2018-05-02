@@ -30,7 +30,6 @@ class FileLoader<Type> extends HttpWorker<Type> {
         mDirectory = Victor.getInstance().getConfig().getRootDirectory().getAbsolutePath();
     }
 
-    private Request<Type> mRequest;
     private Deliver mDeliver;
 
     static <T> FileLoader create(Request<T> request, Deliver deliver) {
@@ -233,12 +232,13 @@ class FileLoader<Type> extends HttpWorker<Type> {
 
     private void onPostLoaded(final String filePath) {
         if (mDeliver != null && mRequest != null) {
+            final Callback<Type> callback = mRequest.getCallback();
+            final String url = mRequest.getUrl();
             mDeliver.postResponse(new Runnable() {
                 @Override
                 public void run() {
-                    Callback<Type> callback = mRequest.getCallback();
                     if (callback != null) {
-                        callback.onPostLoaded(mRequest.getUrl(), filePath);
+                        callback.onPostLoaded(url, filePath);
                     }
                 }
             });

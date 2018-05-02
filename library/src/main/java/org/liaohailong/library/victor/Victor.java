@@ -6,10 +6,10 @@ import android.text.TextUtils;
 
 import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.engine.EngineManager;
+import org.liaohailong.library.victor.engine.FileEngine;
 import org.liaohailong.library.victor.engine.IEngine;
 import org.liaohailong.library.victor.interceptor.Interceptor;
 import org.liaohailong.library.victor.request.Request;
-import org.liaohailong.library.victor.request.TextRequest;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -73,6 +73,10 @@ public class Victor {
         return new TextRequestBuilder();
     }
 
+    public FileRequestBuilder newFileRequest() {
+        return new FileRequestBuilder();
+    }
+
     public abstract class RequestBuilder {
         private String url;
         private String httpMethod = HttpInfo.GET;
@@ -125,6 +129,16 @@ public class Victor {
             return this;
         }
 
+        public RequestBuilder setConnectTimeOut(int connectTimeOut) {
+            this.connectTimeOut = connectTimeOut;
+            return this;
+        }
+
+        public RequestBuilder setReadTimeOut(int readTimeOut) {
+            this.readTimeOut = readTimeOut;
+            return this;
+        }
+
         public RequestBuilder setUseCache(boolean useCache) {
             this.useCache = useCache;
             return this;
@@ -157,7 +171,7 @@ public class Victor {
                     .setConnectTimeout(connectTimeOut > 0 ? connectTimeOut : mDefaultHttpConnectSetting.getConnectTimeout())
                     .setReadTimeout(readTimeOut > 0 ? readTimeOut : mDefaultHttpConnectSetting.getReadTimeout());
 
-            Request<T> request = new TextRequest<>(requestPriority,
+            Request<T> request = new Request<>(requestPriority,
                     order,
                     useCache,
                     useCookie,
@@ -188,6 +202,14 @@ public class Victor {
         }
     }
 
+    public final class FileRequestBuilder extends RequestBuilder {
 
+        @Override
+        protected IEngine getEngine() {
+            FileEngine fileEngine = mEngineManager.getFileEngine();
+            fileEngine.start();
+            return fileEngine;
+        }
+    }
 }
 

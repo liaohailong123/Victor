@@ -25,7 +25,7 @@ import java.util.Map;
  */
 
 class HttpWorker<Type> {
-    private Request<Type> mRequest;
+    Request<Type> mRequest;
 
     static <T> HttpWorker create(Request<T> request) {
         return new HttpWorker<>(request);

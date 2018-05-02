@@ -17,7 +17,7 @@ import java.util.Map;
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-public abstract class Request<T> implements Comparable<Request<T>> {
+public class Request<T> implements Comparable<Request<T>> {
     //Http协议相关
     private final String mUrl;//请求服务器的地址
     private final String mHttpMethod;//默认为GET请求
@@ -36,7 +36,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     //请求引擎
     private IEngine mEngine;
 
-    Request(RequestPriority requestPriority,
+    public Request(RequestPriority requestPriority,
             int order,
             boolean shouldCache,
             boolean shouldCookie,

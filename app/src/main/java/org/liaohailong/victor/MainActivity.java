@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
@@ -14,6 +15,7 @@ import org.liaohailong.library.victor.HttpInfo;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.VictorConfig;
+import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.HttpCallback;
 import org.liaohailong.library.victor.engine.CacheInfo;
 import org.liaohailong.library.victor.interceptor.Interceptor;
@@ -44,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
         init();
-//        init2();
     }
 
     long start;
@@ -95,98 +96,12 @@ public class MainActivity extends AppCompatActivity {
             //启动文本数据网络请求引擎
             Victor.getInstance().getEngineManager().fire();
 
-            refreshStartTime();
+            /*refreshStartTime();
             for (int i = 0; i < 4000; i++) {
                 doRequest(i);
-            }
-        }
-    }
+            }*/
 
-    private void init2() {
-        ExecutorService executorService = Executors.newFixedThreadPool(6);
-        refreshStartTime();
-        for (int i = 0; i < 4000; i++) {
-            int wallId = 2000 + i;
-            final String wallIdStr = String.valueOf(wallId);
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        try {
-                            URL url = new URL(MainActivity.url);
-                            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                            try {
-                                httpURLConnection.setRequestMethod("POST");
-                                httpURLConnection.setDoInput(true);
-                                httpURLConnection.setDoOutput(true);
-
-                                httpURLConnection.setConnectTimeout(3000);
-                                httpURLConnection.setReadTimeout(3000);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            Map<String, String> params = new HashMap<>();
-                            params.put("wall", wallIdStr);
-                            String postParameters = Util.createQueryStringForParameters(params);
-                            try {
-                                httpURLConnection.setFixedLengthStreamingMode(postParameters.getBytes(HttpInfo.UTF_8).length);
-                            } catch (UnsupportedEncodingException e) {
-                                e.printStackTrace();
-                            }
-
-                            PrintWriter out = null;
-                            try {
-                                out = new PrintWriter(new OutputStreamWriter(
-                                        httpURLConnection.getOutputStream(), HttpInfo.UTF_8));
-                                out.print(postParameters);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } finally {
-                                if (out != null) {
-                                    out.close();
-                                }
-                            }
-
-                            int responseCode = httpURLConnection.getResponseCode();
-
-                            InputStream inputStream;
-                            if (responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
-                                inputStream = httpURLConnection.getInputStream();
-                            } else {
-                                inputStream = httpURLConnection.getErrorStream();
-                            }
-
-                            String enc = httpURLConnection.getContentEncoding();
-                            // 注意这里 ↓
-                            if (enc != null && enc.equals(HttpInfo.GZIP)) {
-                                inputStream = new java.util.zip.GZIPInputStream(inputStream);
-                            }
-
-                            Map<String, List<String>> headerFields = httpURLConnection.getHeaderFields();
-                            Map<String, String> convertHeaders = Util.convertHeaders(headerFields);
-                            CacheInfo cacheInfo = Util.parseCacheHeaders(convertHeaders);
-                            String setCookie = convertHeaders.get(HttpInfo.SET_COOKIE);
-                            final String result = Util.streamToString(inputStream);
-
-                            mTextView.post(new Runnable() {
-                                @SuppressLint("SetTextI18n")
-                                @Override
-                                public void run() {
-                                    mTextView.setText("onSuccess wallId = " + wallIdStr + "   \n" + result);
-                                    postTimeCost();
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            });
+            loadFile();
         }
     }
 
@@ -215,6 +130,37 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 //        request.cancel();
+    }
+
+    private void loadFile() {
+        Victor.getInstance().newFileRequest()
+                .setUrl("http://z.hidajian.com/Public/Api/images/charts/miaopai_1.mp4")
+                .doGet()
+                .setConnectTimeOut(30 * 1000)
+                .setReadTimeOut(30 * 1000)
+                .setCallback(new FileCallback() {
+                    @Override
+                    public void onPreLoading(String url) {
+                        Toast.makeText(mTextView.getContext(), "onPreLoading", Toast.LENGTH_LONG).show();
+                    }
+
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onLoading(String url, String tempFilePath, int progress) {
+                        mTextView.setText("url = " + url + "     progress = " + progress + "%");
+                    }
+
+                    @Override
+                    public void onPostLoaded(String url, String filePath) {
+                        Toast.makeText(mTextView.getContext(), "onPostLoaded filePath = " + filePath, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onLoadingError(String url, String info) {
+                        Toast.makeText(mTextView.getContext(), "onLoadingError", Toast.LENGTH_LONG).show();
+                    }
+                });
+
     }
 
     @Override
