@@ -139,6 +139,6 @@ public class Request<T> implements Comparable<Request<T>> {
         return "url = " + mUrl
                 + "   httpMethod = " + mHttpMethod
                 + "   httpHeader = " + mHttpHeader.toString()
-                + "  mHttpParams = " + mHttpParams;
+                + "  mHttpParams = " + mHttpParams.toString();
     }
 }

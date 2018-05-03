@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String url = "https://z.hidajian.com/api/charts/wall_data";
     private TextView mTextView;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,17 +81,16 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-            /*refreshStartTime();
-            for (int i = 0; i < 4000; i++) {
+            refreshStartTime();
+            for (int i = 0; i < 7777; i++) {
                 doRequest(i);
-            }*/
-
-            loadFile();
+            }
+//            loadFile();
         }
     }
 
     private void doRequest(int offset) {
-        int wallId = 2000 + offset;
+        int wallId = 1 + offset;
         final String wallIdStr = String.valueOf(wallId);
         Victor.getInstance().newTextRequest()
                 .doPost()

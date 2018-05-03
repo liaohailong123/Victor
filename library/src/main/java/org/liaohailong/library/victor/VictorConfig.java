@@ -99,7 +99,9 @@ public class VictorConfig {
     }
 
     public VictorConfig addInterceptor(Interceptor interceptor) {
-        mInterceptors.add(interceptor);
+        if (interceptor != null) {
+            mInterceptors.add(interceptor);
+        }
         return this;
     }
 
