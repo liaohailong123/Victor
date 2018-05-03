@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Describe as :
+ * Describe as : 文件上传
  * Created by LHL on 2018/5/3.
  */
 

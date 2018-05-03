@@ -15,7 +15,7 @@ import java.net.URL;
 
 
 /**
- * Describe as : 文件文件下载/上传处理器
+ * Describe as : 文件下载
  * Created by LHL on 2018/5/2.
  */
 

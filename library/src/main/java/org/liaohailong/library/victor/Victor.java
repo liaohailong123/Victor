@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Describe as: 基于HttpUrlConnection封装的网络请求库
  * 基本功能：
- * 1，上传文件、下载文件（多线程断点下载）             (未完成)
+ * 1，上传文件、下载文件（多线程 + 断点）             (未完成)
  * 2，仿Volley的万箭齐发式请求（轻量级任务）
  * 3，手动移除网络队列中的任务（文件下载/上传除外）
  * 4，数据缓存，减少请求网络的频率，从而优化流量费用
@@ -56,10 +56,6 @@ public class Victor {
 
     public VictorConfig getConfig() {
         return mVictorConfig;
-    }
-
-    public EngineManager getEngineManager() {
-        return mEngineManager;
     }
 
     public LinkedList<Interceptor> getInterceptors() {
@@ -264,7 +260,6 @@ public class Victor {
                     engine);
         }
     }
-
 
     public final class TextRequestBuilder extends RequestBuilder {
 
