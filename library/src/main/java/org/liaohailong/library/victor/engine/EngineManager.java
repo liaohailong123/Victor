@@ -38,21 +38,7 @@ public class EngineManager {
         return mFileEngine;
     }
 
-    /**
-     * ignition :[ɪgˈnɪʃn]
-     * n.（汽油引擎的）发火装置;着火，燃烧;点火，点燃
-     */
-    public void ignition() {
-        if (mTextEngine != null) {
-            mTextEngine.start();
-        }
-    }
-
-    /**
-     * flame out: ['fleɪmˌaʊt]
-     * n.（喷气发动机）燃烧中断，熄火
-     */
-    public void flameOut() {
+    public void release() {
         if (mTextEngine != null) {
             mTextEngine.release();
         }

@@ -1,15 +1,12 @@
 package org.liaohailong.victor;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,12 +15,9 @@ import android.widget.Toast;
 import com.google.gson.JsonObject;
 
 import org.liaohailong.library.victor.RequestPriority;
-import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.TextCallback;
-import org.liaohailong.library.victor.interceptor.Interceptor;
-import org.liaohailong.library.victor.request.Request;
 
 import java.io.File;
 
@@ -104,7 +98,7 @@ public class VictorActivity extends AppCompatActivity {
                 .setUseCache(true)
                 .setUseCookie(true)
                 .addParam("wall", wallIdStr)
-                .setCallback(new TextCallback<JsonObject>() {
+                .enqueue(new TextCallback<JsonObject>() {
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(JsonObject result) {
@@ -127,7 +121,7 @@ public class VictorActivity extends AppCompatActivity {
                 .doGet()
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
-                .setCallback(new FileCallback() {
+                .enqueue(new FileCallback() {
                     @Override
                     public void onPreLoading(String url) {
                         Toast.makeText(mTextView.getContext(), "onPreLoading", Toast.LENGTH_LONG).show();
@@ -163,7 +157,7 @@ public class VictorActivity extends AppCompatActivity {
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setRequestPriority(RequestPriority.HIGHT)
-                .setCallback(new FileCallback() {
+                .enqueue(new FileCallback() {
 
                     @Override
                     public void onPreLoading(String url) {

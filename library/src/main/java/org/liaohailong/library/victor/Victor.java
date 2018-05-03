@@ -24,9 +24,9 @@ import java.util.Map;
  * 1，文件下载（断点） + 文件上传
  * 2，海量文本数据请求（轻量级任务）
  * 3，手动移除网络队列中的任务
- * 4，数据缓存，减少请求网络的频率，从而优化流量费用
- * 5，自由修改全局统一的Http请求首部字段
- * 6，全局统一的拦截器
+ * 4，数据缓存，优化流量
+ * 5，全局的Http请求首部字段
+ * 6，全局的拦截器
  * Created by LiaoHaiLong on 2018/4/30.
  */
 
@@ -72,16 +72,12 @@ public class Victor {
         return new DownloadFileRequestBuilder();
     }
 
-    private DownloadFileRequestBuilder newMultipleDownloadRequest() {
-        return new DownloadFileRequestBuilder();
-    }
-
     public UploadFileRequestBuilder newUploadRequest() {
         return new UploadFileRequestBuilder();
     }
 
     public void release() {
-        mEngineManager.flameOut();
+        mEngineManager.release();
     }
 
     public abstract class RequestBuilder {
@@ -156,7 +152,7 @@ public class Victor {
             return this;
         }
 
-        public <T> Request<T> setCallback(Callback<T> callback) {
+        public <T> Request<T> enqueue(Callback<T> callback) {
             if (TextUtils.isEmpty(url)) {
                 throw new IllegalArgumentException(" url can not be empty!");
             }
@@ -268,7 +264,6 @@ public class Victor {
     }
 
     public class DownloadFileRequestBuilder extends RequestBuilder {
-        private boolean isMultiple = false;
 
         @Override
         public DownloadFileRequestBuilder setUrl(String url) {
@@ -281,11 +276,6 @@ public class Victor {
             FileEngine fileEngine = mEngineManager.getFileEngine();
             fileEngine.start();
             return fileEngine;
-        }
-
-        public DownloadFileRequestBuilder setMultiple(boolean multiple) {
-            isMultiple = multiple;
-            return this;
         }
 
         @Override
@@ -310,7 +300,6 @@ public class Victor {
                     httpConnectSetting,
                     callback,
                     engine);
-            tRequest.setMultiple(isMultiple);
             tRequest.setDownload(true);
             return tRequest;
         }
@@ -351,16 +340,16 @@ public class Victor {
                                             IEngine engine) {
 
             if (TextUtils.isEmpty(key)) {
-                throw new IllegalArgumentException("UploadFileRequestBuilder:key can not be empty!");
+                throw new IllegalArgumentException("UploadFileRequestBuilder : key can not be empty!");
             }
             if (file == null) {
-                throw new IllegalArgumentException("UploadFileRequestBuilder:file can not be empty!");
+                throw new IllegalArgumentException("UploadFileRequestBuilder : file can not be empty!");
             }
             if (!file.exists()) {
-                throw new IllegalArgumentException("UploadFileRequestBuilder:file is not exist");
+                throw new IllegalArgumentException("UploadFileRequestBuilder : file is not exist");
             }
             if (file.isDirectory()) {
-                throw new IllegalArgumentException("UploadFileRequestBuilder:file is isDirectory ? are you kidding me ?");
+                throw new IllegalArgumentException("UploadFileRequestBuilder : file is isDirectory ? are you kidding me ?");
             }
 
             FileRequest<T> request = (FileRequest<T>) super.getRequest(requestPriority,
