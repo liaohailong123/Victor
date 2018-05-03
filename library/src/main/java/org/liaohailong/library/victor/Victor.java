@@ -80,10 +80,6 @@ public class Victor {
         return new UploadFileRequestBuilder();
     }
 
-    private UploadFileRequestBuilder newMultipleUploadRequest() {
-        return new UploadFileRequestBuilder();
-    }
-
     public void release() {
         mEngineManager.flameOut();
     }
@@ -380,6 +376,7 @@ public class Victor {
                     engine);
             request.addFiles(key, file);
             request.setDownload(false);
+            request.setMultiple(false);
             return request;
         }
     }
