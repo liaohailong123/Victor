@@ -6,10 +6,8 @@ import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.request.Request;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,7 +22,6 @@ public class FileEngine extends AbEngine {
 
     //文件下载引擎
     private ExecutorService mExecutorService;
-
     //缓存任务
     private PriorityBlockingQueue<Request<?>> mCachingQueue = new PriorityBlockingQueue<>();
     //记录任务
@@ -65,8 +62,8 @@ public class FileEngine extends AbEngine {
 
     private boolean checkCache(Request<?> request) {
         String url = request.getUrl();
-        String path = FileLoader.getPath(url);
-        boolean loaded = FileLoader.isLoaded(path);
+        String path = FileDownLoader.getPath(url);
+        boolean loaded = FileDownLoader.isLoaded(path);
         if (loaded) {
             Callback<?> callback = request.getCallback();
             callback.onPostLoaded(url, path);
@@ -148,7 +145,7 @@ public class FileEngine extends AbEngine {
         clearRequest();
         if (mExecutorService != null) {
             List<Runnable> runnableList = mExecutorService.shutdownNow();
-            LogMan.i("FileEngine restore() runnables = " + runnableList.toString());
+            LogMan.i("FileEngine release() runnables = " + runnableList.toString());
             mExecutorService = null;
         }
     }

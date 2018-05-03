@@ -5,12 +5,14 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
+import org.liaohailong.library.victor.RequestPriority;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.VictorConfig;
@@ -18,6 +20,8 @@ import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.HttpCallback;
 import org.liaohailong.library.victor.interceptor.Interceptor;
 import org.liaohailong.library.victor.request.Request;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,8 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         if (Util.requestPermissionIfNeed(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, "", 0)) {
             //初始化基本配置
-            VictorConfig victorConfig = Victor.getInstance().initConfig(getApplicationContext());
-            victorConfig.setCacheMaxSize(50 * 1024 * 1024)
+            Victor.getInstance().initConfig(getApplicationContext())
+                    .createCacheDirectory("", 50 * 1024 * 1024)
                     .setConnectTimeout(3 * 1000)
                     .setReadTimeout(3 * 1000)
                     .setLogEnable(true)
@@ -112,15 +116,14 @@ public class MainActivity extends AppCompatActivity {
                         postTimeCost();
                     }
                 });
-//        request.cancel();
     }
 
     private void loadFile() {
-        Victor.getInstance().newFileRequest()
+        Victor.getInstance().newDownloadRequest()
                 .setUrl("http://z.hidajian.com/Public/Api/images/charts/miaopai_1.mp4")
                 .doGet()
-                .setConnectTimeOut(30 * 1000)
-                .setReadTimeOut(30 * 1000)
+                .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
+                .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setCallback(new FileCallback() {
                     @Override
                     public void onPreLoading(String url) {
@@ -136,11 +139,48 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPostLoaded(String url, String filePath) {
                         Toast.makeText(mTextView.getContext(), "onPostLoaded filePath = " + filePath, Toast.LENGTH_LONG).show();
+                        uploadFile(filePath);
                     }
 
                     @Override
                     public void onLoadingError(String url, String info) {
-                        Toast.makeText(mTextView.getContext(), "onLoadingError", Toast.LENGTH_LONG).show();
+                        Toast.makeText(mTextView.getContext(), "onLoadingError info = " + info, Toast.LENGTH_LONG).show();
+                    }
+                });
+
+    }
+
+    private void uploadFile(String filePath) {
+        //理论上最丰富的url
+        //协议方案  登录信息       ip地址   端口号    文件路径  请求参数    片段标识符
+        // http://user:password@192.168.1.38:8080/xxx/xxx/xxx?query=1&name=2#ch1
+        Victor.getInstance().newUploadRequest()
+                .setUrl("http://192.168.1.38:8080/")
+                .addFile("file", new File(filePath))
+                .addParam("name", "Super Man")
+                .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
+                .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
+                .setRequestPriority(RequestPriority.HIGHT)
+                .setCallback(new FileCallback() {
+                    @Override
+                    public void onPreLoading(String url) {
+                        Toast.makeText(mTextView.getContext(), "文件上传开始了", Toast.LENGTH_LONG).show();
+                    }
+
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onLoading(String url, String tempFilePath, int progress) {
+                        mTextView.setText("url = " + url + "     文件上传进度 = " + progress + "%");
+                    }
+
+                    @Override
+                    public void onPostLoaded(String url, String filePath) {
+                        Toast.makeText(mTextView.getContext(), "文件上传完毕", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onLoadingError(String url, String info) {
+                        Toast.makeText(mTextView.getContext(), "文件上传失败 info = " + info, Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -155,6 +195,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Victor.getInstance().restore();
+        Victor.getInstance().release();
     }
 }

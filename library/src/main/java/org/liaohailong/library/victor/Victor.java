@@ -3,14 +3,17 @@ package org.liaohailong.library.victor;
 import android.content.Context;
 import android.support.annotation.MainThread;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.engine.EngineManager;
 import org.liaohailong.library.victor.engine.FileEngine;
 import org.liaohailong.library.victor.engine.IEngine;
 import org.liaohailong.library.victor.interceptor.Interceptor;
+import org.liaohailong.library.victor.request.FileRequest;
 import org.liaohailong.library.victor.request.Request;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -67,11 +70,23 @@ public class Victor {
         return new TextRequestBuilder();
     }
 
-    public FileRequestBuilder newFileRequest() {
-        return new FileRequestBuilder();
+    public DownloadFileRequestBuilder newDownloadRequest() {
+        return new DownloadFileRequestBuilder();
     }
 
-    public void restore() {
+    private DownloadFileRequestBuilder newMultipleDownloadRequest() {
+        return new DownloadFileRequestBuilder();
+    }
+
+    public UploadFileRequestBuilder newUploadRequest() {
+        return new UploadFileRequestBuilder();
+    }
+
+    private UploadFileRequestBuilder newMultipleUploadRequest() {
+        return new UploadFileRequestBuilder();
+    }
+
+    public void release() {
         mEngineManager.flameOut();
     }
 
@@ -156,6 +171,31 @@ public class Victor {
             Map<String, String> defaultHeaders = mVictorConfig.getDefaultHeaders();
             Map<String, String> defaultParams = mVictorConfig.getDefaultParams();
 
+            //过滤空的Http报文头部和首部字段
+            Map<String, String> tempMap = new HashMap<>();
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (TextUtils.isEmpty(key) || TextUtils.isEmpty(value)) {
+                    continue;
+                }
+                tempMap.put(key, value);
+            }
+            headers.clear();
+            headers.putAll(tempMap);
+
+            tempMap.clear();
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (TextUtils.isEmpty(key) || TextUtils.isEmpty(value)) {
+                    continue;
+                }
+                tempMap.put(key, value);
+            }
+            params.clear();
+            params.putAll(tempMap);
+
             HttpField httpHeader = new HttpField()
                     .addParams(defaultHeaders)
                     .addParams(headers);
@@ -169,7 +209,13 @@ public class Victor {
                     .setConnectTimeout(connectTimeOut > 0 ? connectTimeOut : mDefaultHttpConnectSetting.getConnectTimeout())
                     .setReadTimeout(readTimeOut > 0 ? readTimeOut : mDefaultHttpConnectSetting.getReadTimeout());
 
-            Request<T> request = new Request<>(requestPriority,
+            if (mEngine == null) {
+                mEngine = getEngine();
+                mEngine.start();
+            }
+
+            Request<T> request = getRequest(
+                    requestPriority,
                     order,
                     useCache,
                     useCookie,
@@ -181,15 +227,42 @@ public class Victor {
                     callback,
                     mEngine);
 
-            if (mEngine == null) {
-                mEngine = getEngine();
-                mEngine.start();
+            //判断是否存在网络连接情况
+            Context applicationContext = getConfig().getApplicationContext();
+            if (!Util.isNetEnable(applicationContext)) {
+                Toast.makeText(applicationContext, "网络异常，请检测网络是否连接成功", Toast.LENGTH_LONG).show();
+                return request;
             }
+
             mEngine.addRequest(request);
             return request;
         }
 
         protected abstract IEngine getEngine();
+
+        protected <T> Request<T> getRequest(RequestPriority requestPriority,
+                                            int order,
+                                            boolean shouldCache,
+                                            boolean shouldCookie,
+                                            String url,
+                                            String httpMethod,
+                                            HttpField httpHeader,
+                                            HttpField httpParams,
+                                            HttpConnectSetting httpConnectSetting,
+                                            Callback<T> callback,
+                                            IEngine engine) {
+            return new Request<>(requestPriority,
+                    order,
+                    shouldCache,
+                    shouldCookie,
+                    url,
+                    httpMethod,
+                    httpHeader,
+                    httpParams,
+                    httpConnectSetting,
+                    callback,
+                    engine);
+        }
     }
 
 
@@ -201,13 +274,116 @@ public class Victor {
         }
     }
 
-    public final class FileRequestBuilder extends RequestBuilder {
+    public class DownloadFileRequestBuilder extends RequestBuilder {
+        private boolean isMultiple = false;
+
+        @Override
+        public DownloadFileRequestBuilder setUrl(String url) {
+            super.setUrl(url);
+            return this;
+        }
 
         @Override
         protected IEngine getEngine() {
             FileEngine fileEngine = mEngineManager.getFileEngine();
             fileEngine.start();
             return fileEngine;
+        }
+
+        public DownloadFileRequestBuilder setMultiple(boolean multiple) {
+            isMultiple = multiple;
+            return this;
+        }
+
+        @Override
+        protected <T> Request<T> getRequest(RequestPriority requestPriority,
+                                            int order,
+                                            boolean shouldCache,
+                                            boolean shouldCookie,
+                                            String url,
+                                            String httpMethod,
+                                            HttpField httpHeader,
+                                            HttpField httpParams,
+                                            HttpConnectSetting httpConnectSetting,
+                                            Callback<T> callback, IEngine engine) {
+            FileRequest<T> tRequest = new FileRequest<>(requestPriority,
+                    order,
+                    shouldCache,
+                    shouldCookie,
+                    url,
+                    httpMethod,
+                    httpHeader,
+                    httpParams,
+                    httpConnectSetting,
+                    callback,
+                    engine);
+            tRequest.setMultiple(isMultiple);
+            tRequest.setDownload(true);
+            return tRequest;
+        }
+    }
+
+    public final class UploadFileRequestBuilder extends DownloadFileRequestBuilder {
+        private String key;
+        private File file;
+
+        @Override
+        public UploadFileRequestBuilder setUrl(String url) {
+            super.setUrl(url);
+            return this;
+        }
+
+        public UploadFileRequestBuilder addFile(String key, File file) {
+            this.key = key;
+            this.file = file;
+            return this;
+        }
+
+        @Override
+        public RequestBuilder doGet() {
+            throw new IllegalArgumentException(getClass().getSimpleName() + "  can not be a GET request");
+        }
+
+        @Override
+        protected <T> Request<T> getRequest(RequestPriority requestPriority,
+                                            int order,
+                                            boolean shouldCache,
+                                            boolean shouldCookie,
+                                            String url,
+                                            String httpMethod,
+                                            HttpField httpHeader,
+                                            HttpField httpParams,
+                                            HttpConnectSetting httpConnectSetting,
+                                            Callback<T> callback,
+                                            IEngine engine) {
+
+            if (TextUtils.isEmpty(key)) {
+                throw new IllegalArgumentException("UploadFileRequestBuilder:key can not be empty!");
+            }
+            if (file == null) {
+                throw new IllegalArgumentException("UploadFileRequestBuilder:file can not be empty!");
+            }
+            if (!file.exists()) {
+                throw new IllegalArgumentException("UploadFileRequestBuilder:file is not exist");
+            }
+            if (file.isDirectory()) {
+                throw new IllegalArgumentException("UploadFileRequestBuilder:file is isDirectory ? are you kidding me ?");
+            }
+
+            FileRequest<T> request = (FileRequest<T>) super.getRequest(requestPriority,
+                    order,
+                    shouldCache,
+                    shouldCookie,
+                    url,
+                    HttpInfo.POST,
+                    httpHeader,
+                    httpParams,
+                    httpConnectSetting,
+                    callback,
+                    engine);
+            request.addFiles(key, file);
+            request.setDownload(false);
+            return request;
         }
     }
 }

@@ -42,6 +42,10 @@ public class VictorConfig {
         mDefaultHeaders.put("Accept-Encoding", "gzip, deflate");
     }
 
+    public Context getApplicationContext() {
+        return mApplicationContext;
+    }
+
     public VictorConfig addDefaultHeader(String header, String value) {
         mDefaultHeaders.put(header, value);
         return this;
@@ -62,8 +66,24 @@ public class VictorConfig {
         return this;
     }
 
-    public VictorConfig setCacheMaxSize(int maxDiskCacheBytes) {
-        mRootDirectory = new File(mApplicationContext.getCacheDir(), DEFAULT_CACHE_DIR);
+    public VictorConfig createCacheDirectory(String cacheDir, int maxDiskCacheBytes) {
+        mRootDirectory = new File(TextUtils.isEmpty(cacheDir) ?
+                mApplicationContext.getCacheDir().getAbsolutePath() : cacheDir, DEFAULT_CACHE_DIR);
+        if (!mRootDirectory.exists()) {
+            boolean mkdirs = mRootDirectory.mkdirs();
+            if (!mkdirs) {
+                LogMan.e("mRootDirectory mkdirs = false");
+            }
+        } else if (!mRootDirectory.isDirectory()) {
+            boolean delete = mRootDirectory.delete();
+            if (delete) {
+                boolean mkdirs = mRootDirectory.mkdirs();
+                if (!mkdirs) {
+                    LogMan.e("mRootDirectory mkdirs = false");
+                }
+            }
+        }
+
         mMaxDiskCacheBytes = maxDiskCacheBytes;
         return this;
     }

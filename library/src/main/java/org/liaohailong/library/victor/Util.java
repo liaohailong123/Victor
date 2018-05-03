@@ -1,7 +1,10 @@
 package org.liaohailong.library.victor;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -52,7 +55,15 @@ public final class Util {
     private static final Gson GSON = new Gson();
     private static final JsonParser PARSER = new JsonParser();
 
-    public static String hashKeyFromUrl(String url){
+
+    static boolean isNetEnable(@NonNull Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network = cm.getActiveNetworkInfo();
+        return network != null && network.isAvailable();
+    }
+
+    public static String hashKeyFromUrl(String url) {
         String cacheKey;
         try {
             final MessageDigest mDigest = MessageDigest.getInstance("MD5");
@@ -61,7 +72,7 @@ public final class Util {
         } catch (NoSuchAlgorithmException e) {
             cacheKey = String.valueOf(url.hashCode());
         }
-        return  cacheKey;
+        return cacheKey;
     }
 
     private static String byteToHexString(byte[] bytes) {
@@ -73,7 +84,7 @@ public final class Util {
             }
             sb.append(hex);
         }
-        return  sb.toString();
+        return sb.toString();
     }
 
 

@@ -14,6 +14,8 @@ public class HttpInfo {
 
     public static final String POST = "POST";
 
+    public static final String HEAD = "HEAD";
+
     public static final String GZIP = "gzip";
 
     public static final String CONTENT_TYPE = "Content-Type";
