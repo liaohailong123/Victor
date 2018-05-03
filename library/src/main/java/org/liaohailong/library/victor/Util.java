@@ -304,7 +304,6 @@ public final class Util {
         try {
             return GSON.fromJson(jsonStr, type);
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

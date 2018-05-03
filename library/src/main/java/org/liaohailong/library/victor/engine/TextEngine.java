@@ -3,7 +3,12 @@ package org.liaohailong.library.victor.engine;
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.request.Request;
 
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Describe as: 文本数据请求引擎
@@ -12,81 +17,87 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class TextEngine extends AbEngine {
 
-    //开关标记
-    private boolean isStart = false;
+    private ExecutorService mNetWorkWorker;
+    private ExecutorService mCacheWorker;
 
-    private final PriorityBlockingQueue<Request<?>> mCacheQueue;
-    private final PriorityBlockingQueue<Request<?>> mNetworkQueue;
-
-    private NetworkDispatcher[] mNetworkDispatchers;
-    private CacheDispatcher mCacheDispatcher;
-
+    private Map<Request<?>, Future<?>> mAcceptRequest = new HashMap<>();
 
     TextEngine(Deliver deliver, int size) {
         super(deliver, size);
-        mCacheQueue = new PriorityBlockingQueue<>();
-        mNetworkQueue = new PriorityBlockingQueue<>();
-    }
-
-    private void quiteAllDispatchers() {
-        if (mNetworkDispatchers != null) {
-            for (NetworkDispatcher networkDispatcher : mNetworkDispatchers) {
-                if (networkDispatcher != null) {
-                    networkDispatcher.quite();
-                }
-            }
-            mNetworkDispatchers = null;
-        }
-        if (mCacheDispatcher != null) {
-            mCacheDispatcher.quite();
-            mCacheDispatcher = null;
-        }
+        mSize = mSize < 2 ? 2 : mSize;
+        mNetWorkWorker = Executors.newFixedThreadPool(mSize - 1);
+        mCacheWorker = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public void start() {
-        if (isStart) {
-            return;
+        if (mNetWorkWorker == null || mNetWorkWorker.isShutdown() || mNetWorkWorker.isTerminated()) {
+            mNetWorkWorker = Executors.newFixedThreadPool(mSize - 1);
         }
-        isStart = true;
-        quiteAllDispatchers();
-        mNetworkDispatchers = new NetworkDispatcher[mSize];
-        for (NetworkDispatcher mNetworkDispatcher : mNetworkDispatchers) {
-            mNetworkDispatcher = new NetworkDispatcher(mNetworkQueue, mDeliver);
-            mNetworkDispatcher.start();
+        if (mCacheWorker == null || mCacheWorker.isShutdown() || mCacheWorker.isTerminated()) {
+            mCacheWorker = Executors.newSingleThreadExecutor();
         }
-        mCacheDispatcher = new CacheDispatcher(mNetworkQueue, mCacheQueue, mDeliver);
-        mCacheDispatcher.start();
     }
 
     @Override
     public void addRequest(Request<?> request) {
-        if (request.isShouldCache()) {
-            mCacheQueue.add(request);
-        } else {
-            mNetworkQueue.add(request);
+        if (request == null) {
+            return;
         }
+        if (request.isShouldCache()) {
+            Future<?> submit = mCacheWorker.submit(new CacheDispatcher(request, this, mDeliver));
+            mAcceptRequest.put(request, submit);
+        } else {
+            addNetWorkRequest(request);
+        }
+    }
+
+    void addNetWorkRequest(Request<?> request) {
+        if (request == null) {
+            return;
+        }
+        Future<?> submit = mNetWorkWorker.submit(new NetworkDispatcher(request, this, mDeliver));
+        mAcceptRequest.put(request, submit);
     }
 
     @Override
     public void removeRequest(Request<?> request) {
-        if (request.isShouldCache()) {
-            mCacheQueue.remove(request);
-        } else {
-            mNetworkQueue.remove(request);
+        if (mAcceptRequest.containsKey(request)) {
+            request.cancel();
+            Future<?> future = mAcceptRequest.get(request);
+            future.cancel(true);
+            mAcceptRequest.remove(request);
         }
     }
 
     @Override
     public void clearRequest() {
-        mNetworkQueue.clear();
-        mCacheQueue.clear();
+        for (Request<?> request : mAcceptRequest.keySet()) {
+            request.cancel();
+        }
+        for (Map.Entry<Request<?>, Future<?>> entry : mAcceptRequest.entrySet()) {
+            Request<?> request = entry.getKey();
+            Future<?> future = entry.getValue();
+            if (request != null) {
+                request.cancel();
+            }
+            if (future != null) {
+                future.cancel(true);
+            }
+        }
+        mAcceptRequest.clear();
     }
 
     @Override
     public void release() {
         clearRequest();
-        quiteAllDispatchers();
-        isStart = false;
+        if (mNetWorkWorker != null) {
+            mNetWorkWorker.shutdownNow();
+            mNetWorkWorker = null;
+        }
+        if (mCacheWorker != null) {
+            mCacheWorker.shutdownNow();
+            mCacheWorker = null;
+        }
     }
 }

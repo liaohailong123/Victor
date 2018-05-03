@@ -15,9 +15,6 @@ public class Deliver {
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
     public <T> void postResponse(final Response<T> response) {
-        if (response == null) {
-            return;
-        }
         Runnable runnable = new Runnable() {
 
             @Override

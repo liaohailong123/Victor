@@ -39,7 +39,7 @@ public class Request<T> implements Comparable<Request<T>> {
     private IEngine mEngine;
 
     //开关标记位
-    private volatile boolean isCanceled = false;
+    public volatile boolean isCanceled = false;
 
     public Request(RequestPriority requestPriority,
                    int order,
@@ -109,10 +109,6 @@ public class Request<T> implements Comparable<Request<T>> {
         return mShouldCookie;
     }
 
-    public boolean isCanceled() {
-        return isCanceled;
-    }
-
     public String getCacheKey() {
         String url = getUrl();
         String httpMethod = getHttpMethod();
@@ -124,7 +120,6 @@ public class Request<T> implements Comparable<Request<T>> {
 
     public void cancel() {
         isCanceled = true;
-        mEngine.removeRequest(this);
     }
 
     @Override

@@ -109,7 +109,7 @@ class FileUpLoader<Type> extends FileLoader<Type> {
                 if (interrupted) {
                     return null;
                 }
-                if (fileRequest.isCanceled()) {
+                if (fileRequest.isCanceled) {
                     return null;
                 }
             }

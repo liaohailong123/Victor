@@ -71,7 +71,7 @@ class FileDownLoader<Type> extends FileLoader<Type> {
         InputStream inputStream = null;
         RandomAccessFile randomAccessFile = null;
         try {
-            if (mRequest.isCanceled()) {
+            if (mRequest.isCanceled) {
                 return null;
             }
             String url = mRequest.getUrl();
@@ -120,7 +120,7 @@ class FileDownLoader<Type> extends FileLoader<Type> {
                 if (interrupted) {
                     return null;
                 }
-                if (mRequest.isCanceled()) {
+                if (mRequest.isCanceled) {
                     return null;
                 }
             }

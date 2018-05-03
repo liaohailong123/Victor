@@ -110,7 +110,7 @@ public class FileEngine extends AbEngine {
 
     @Override
     public void removeRequest(Request<?> request) {
-        if (!request.isCanceled() && mFutures.containsKey(request)) {
+        if (mFutures.containsKey(request)) {
             request.cancel();
             Future<?> future = mFutures.get(request);
             if (!future.isCancelled() || !future.isDone()) {
@@ -129,11 +129,12 @@ public class FileEngine extends AbEngine {
     public void clearRequest() {
         for (Map.Entry<Request<?>, Future<?>> entry : mFutures.entrySet()) {
             Request<?> request = entry.getKey();
-            request.cancel();
             Future<?> future = entry.getValue();
-            if (!future.isCancelled() || !future.isDone()) {
-                boolean cancel = future.cancel(true);
-                LogMan.i("FileEngine removeRequest = " + cancel + " request = " + request.toString());
+            if (request != null) {
+                request.cancel();
+            }
+            if (future != null) {
+                future.cancel(true);
             }
         }
         mFutures.clear();
