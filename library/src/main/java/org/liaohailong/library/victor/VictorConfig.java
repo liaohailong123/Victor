@@ -42,7 +42,7 @@ public class VictorConfig {
         mDefaultHeaders.put("Accept-Encoding", "gzip, deflate");
     }
 
-    public Context getApplicationContext() {
+    Context getApplicationContext() {
         return mApplicationContext;
     }
 

@@ -29,5 +29,4 @@ public class HttpInfo {
     public static final String SET_COOKIE = "Set-Cookie";
 
     public static final String COOKIE = "Cookie";
-
 }

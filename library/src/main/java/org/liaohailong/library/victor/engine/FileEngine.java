@@ -145,7 +145,7 @@ public class FileEngine extends AbEngine {
         clearRequest();
         if (mExecutorService != null) {
             List<Runnable> runnableList = mExecutorService.shutdownNow();
-            LogMan.i("FileEngine release() runnables = " + runnableList.toString());
+            LogMan.i("FileEngine release() runnableList = " + runnableList.toString());
             mExecutorService = null;
         }
     }

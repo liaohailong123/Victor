@@ -15,7 +15,6 @@ import com.google.gson.JsonObject;
 import org.liaohailong.library.victor.RequestPriority;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
-import org.liaohailong.library.victor.VictorConfig;
 import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.HttpCallback;
 import org.liaohailong.library.victor.interceptor.Interceptor;
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private void doRequest(int offset) {
         int wallId = 2000 + offset;
         final String wallIdStr = String.valueOf(wallId);
-        Request<JsonObject> request = Victor.getInstance().newTextRequest()
+        Victor.getInstance().newTextRequest()
                 .doPost()
                 .setUrl(url)
                 .setUseCache(true)
@@ -147,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(mTextView.getContext(), "onLoadingError info = " + info, Toast.LENGTH_LONG).show();
                     }
                 });
-
     }
 
     private void uploadFile(String filePath) {
@@ -157,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         Victor.getInstance().newUploadRequest()
                 .setUrl("http://192.168.1.38:8080/")
                 .addFile("file", new File(filePath))
-                .addParam("name", "Super Man")
+                .addParam("name", "The little monk")
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setRequestPriority(RequestPriority.HIGHT)
@@ -183,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(mTextView.getContext(), "文件上传失败 info = " + info, Toast.LENGTH_LONG).show();
                     }
                 });
-
     }
 
     @Override
