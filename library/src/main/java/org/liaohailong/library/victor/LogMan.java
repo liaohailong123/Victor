@@ -3,7 +3,7 @@ package org.liaohailong.library.victor;
 import android.util.Log;
 
 /**
- * Describe as :
+ * Describe as : Log输出
  * Created by LHL on 2018/5/2.
  */
 

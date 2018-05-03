@@ -16,7 +16,7 @@ import org.liaohailong.library.victor.RequestPriority;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.callback.FileCallback;
-import org.liaohailong.library.victor.callback.HttpCallback;
+import org.liaohailong.library.victor.callback.TextCallback;
 import org.liaohailong.library.victor.interceptor.Interceptor;
 import org.liaohailong.library.victor.request.Request;
 
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 .setUseCache(true)
                 .setUseCookie(true)
                 .addParam("wall", wallIdStr)
-                .setCallback(new HttpCallback<JsonObject>() {
+                .setCallback(new TextCallback<JsonObject>() {
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(JsonObject result) {

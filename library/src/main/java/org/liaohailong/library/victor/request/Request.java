@@ -15,7 +15,7 @@ import org.liaohailong.library.victor.engine.IEngine;
 import java.util.Map;
 
 /**
- * Describe as:
+ * Describe as: 普通的文本请求
  * Created by LiaoHaiLong on 2018/5/1.
  */
 

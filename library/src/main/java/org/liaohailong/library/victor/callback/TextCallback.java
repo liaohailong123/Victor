@@ -14,11 +14,11 @@ import java.net.HttpURLConnection;
 import java.util.List;
 
 /**
- * Describe as: 适配Callback，添加数据实例化为bean类的方法
+ * Describe as: 文本数据请求回调，自动将数据实例化为bean类
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-public abstract class HttpCallback<T> implements Callback<T> {
+public abstract class TextCallback<T> implements Callback<T> {
 
     @Override
     public void getRawData(int code, String data) {
