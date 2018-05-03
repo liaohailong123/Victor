@@ -5,12 +5,7 @@ package org.liaohailong.library.victor.callback;
  * Created by LHL on 2018/5/2.
  */
 
-public abstract class FileCallback implements Callback<String> {
-
-    @Override
-    public final void getRawData(int code, String data) {
-        //do nothing...
-    }
+public abstract class FileCallback extends TextCallback<String> {
 
     @Override
     public final void onSuccess(String result) {
@@ -33,7 +28,7 @@ public abstract class FileCallback implements Callback<String> {
     }
 
     @Override
-    public void onPostLoaded(String url, String filePath) {
+    public void onPostLoaded(String url, String resultInfo) {
         //事后，请子类实现
     }
 

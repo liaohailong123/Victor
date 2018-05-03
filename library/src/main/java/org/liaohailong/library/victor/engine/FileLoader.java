@@ -23,7 +23,7 @@ class FileLoader<Type> extends HttpWorker<Type> {
         return tFileLoader;
     }
 
-    private Deliver mDeliver;
+    Deliver mDeliver;
 
     FileLoader(Request<Type> request, Deliver deliver) {
         super(request);

@@ -3,8 +3,10 @@ package org.liaohailong.library.victor.engine;
 
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.HttpField;
+import org.liaohailong.library.victor.LogMan;
 import org.liaohailong.library.victor.Response;
 import org.liaohailong.library.victor.Util;
+import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.request.FileRequest;
 import org.liaohailong.library.victor.request.Request;
 
@@ -52,6 +54,30 @@ class FileUpLoader<Type> extends FileLoader<Type> {
             connection.setUseCaches(false);// 不允许使用缓存
             //指定流的大小，当内容达到这个值的时候就把流输出
             connection.setChunkedStreamingMode(128 * 1024);// 128K
+            //计算请求主体内容总长度
+            StringBuilder sb = new StringBuilder();
+            //普通的表单的数据
+            HttpField postParams = fileRequest.getPostParams();
+            for (Map.Entry<String, String> entry : postParams.getParams().entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                sb.append(twoHyphens).append(boundary).append(end);
+                sb.append("Content-Disposition: form-data; name=\"").append(key).append("\"").append(end);
+                sb.append(end);
+                sb.append(value).append(end);
+            }
+            //上传文件的头部
+            String key = fileRequest.getFileKey();
+            File file = fileRequest.getFile();
+            sb.append(twoHyphens).append(boundary).append(end);
+            sb.append("Content-Disposition: form-data; name=\"").append(key).append("\"; filename=\"").append(file.getName()).append("\"").append(end);
+            sb.append(end);
+
+            byte[] headerInfo = sb.toString().getBytes("UTF-8");
+            byte[] endInfo = (end + twoHyphens + boundary + twoHyphens + end).getBytes("UTF-8");
+
+            long contentLength = headerInfo.length + file.length() + endInfo.length;
+            connection.addRequestProperty("Content-Length", String.valueOf(contentLength));
             // 使用POST方法
             connection.setRequestMethod("POST");// 请求方式
             connection.setRequestProperty("Connection", "Keep-Alive");
@@ -61,39 +87,16 @@ class FileUpLoader<Type> extends FileLoader<Type> {
             //尝试连接
             connection.connect();
             //开始写入报文主体
-            dos = new DataOutputStream(
-                    connection.getOutputStream());
+            dos = new DataOutputStream(connection.getOutputStream());
             //step1:写入文本参数
-            dos.writeBytes(twoHyphens + boundary + end);
-            HttpField postParams = fileRequest.getPostParams();
-            for (Map.Entry<String, String> entry : postParams.getParams().entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                dos.writeBytes("Content-Disposition: form-data; name=\"" + key + "\"" + end);
-                dos.writeBytes(end);
-                dos.writeUTF(value);
-                dos.writeBytes(end);
-            }
+            dos.write(headerInfo);
             //step2:写入文件
-            String key = fileRequest.getFileKey();
-            File file = fileRequest.getFile();
-             /*
-             * 这里重点注意： name里面的值为服务器端需要key 只有这个key 才可以得到对应的文件
-             * filename是文件的名字，包含后缀名
-             */
-            dos.writeBytes(twoHyphens + boundary + end);
-            dos.writeBytes("Content-Disposition: form-data; name=\"" + key
-                    + "\"; filename=\"" + file.getName() + "\"" + end);
-            dos.writeBytes(end);
-
-            // 读取文件
             FileInputStream fileInputStream = new FileInputStream(file);
-            int available = fileInputStream.available();
-            BufferedInputStream bis = new BufferedInputStream(fileInputStream, available);
-            long length = file.length();
-            int outLength = 0;
+            BufferedInputStream bis = new BufferedInputStream(fileInputStream);
 
-            byte[] buffer = new byte[available];
+            long length = file.length();
+            byte[] buffer = new byte[8192];
+            int outLength = 0;
             int count;
             while ((count = bis.read(buffer, 0, buffer.length)) != -1) {
                 dos.write(buffer, 0, count);
@@ -110,21 +113,31 @@ class FileUpLoader<Type> extends FileLoader<Type> {
                     return null;
                 }
             }
+            //step3:写入结尾标识
+            dos.write(endInfo);
             bis.close();
-            dos.writeBytes(end);
-            dos.writeBytes(twoHyphens + boundary + twoHyphens + end);
             dos.flush();
+            dos.close();
 
             int code = connection.getResponseCode();
             if (code < HttpURLConnection.HTTP_BAD_REQUEST) {
                 is = connection.getInputStream();
                 onPostLoaded("");
+                //利用Json转移字符
+                final String result = Util.stringToJson(Util.streamToString(is)).toString();
+                final String url = mRequest.getUrl();
+                final Callback<Type> callback = mRequest.getCallback();
+                mDeliver.postResponse(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onPostLoaded(url, result);
+                    }
+                });
             } else {
                 is = connection.getErrorStream();
                 String result = Util.streamToString(is);
                 onLoadingError(result);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             onLoadingError(e.toString());

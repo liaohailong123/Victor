@@ -136,9 +136,9 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onPostLoaded(String url, String filePath) {
-                        Toast.makeText(mTextView.getContext(), "onPostLoaded filePath = " + filePath, Toast.LENGTH_LONG).show();
-                        uploadFile(filePath);
+                    public void onPostLoaded(String url, String resultInfo) {
+                        Toast.makeText(mTextView.getContext(), "onPostLoaded filePath = " + resultInfo, Toast.LENGTH_LONG).show();
+                        uploadFile(resultInfo);
                     }
 
                     @Override
@@ -153,13 +153,14 @@ public class MainActivity extends AppCompatActivity {
         //协议方案  登录信息       ip地址   端口号    文件路径  请求参数    片段标识符
         // http://user:password@192.168.1.38:8080/xxx/xxx/xxx?query=1&name=2#ch1
         Victor.getInstance().newUploadRequest()
-                .setUrl("http://192.168.1.38:8080/")
-                .addFile("file", new File(filePath))
-                .addParam("name", "The little monk")
+                .setUrl("http://192.168.1.155/Adc/public/upload_file")
+                .addFile("filename", new File(filePath))
+                .addParam("params", "{\"type\":\"media\"}")
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setRequestPriority(RequestPriority.HIGHT)
                 .setCallback(new FileCallback() {
+
                     @Override
                     public void onPreLoading(String url) {
                         Toast.makeText(mTextView.getContext(), "文件上传开始了", Toast.LENGTH_LONG).show();
@@ -172,14 +173,16 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onPostLoaded(String url, String filePath) {
+                    public void onPostLoaded(String url, String resultInfo) {
                         Toast.makeText(mTextView.getContext(), "文件上传完毕", Toast.LENGTH_LONG).show();
+                        mTextView.setText(resultInfo);
                     }
 
                     @Override
                     public void onLoadingError(String url, String info) {
                         Toast.makeText(mTextView.getContext(), "文件上传失败 info = " + info, Toast.LENGTH_LONG).show();
                     }
+
                 });
     }
 

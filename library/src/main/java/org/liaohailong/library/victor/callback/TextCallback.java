@@ -41,6 +41,9 @@ public abstract class TextCallback<T> implements Callback<T> {
                 //noinspection unchecked
                 return (T) rawData;
             }
+            if (type == String.class) {
+                return (T) rawData.toString();
+            }
             if (rawData == null) {
                 return null;
             }

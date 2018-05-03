@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Describe as: 基于HttpUrlConnection封装的网络请求库
  * 基本功能：
- * 1，上传文件、下载文件（多线程 + 断点）             (未完成)
+ * 1，下载文件（多线程 + 断点） + 上传文件
  * 2，仿Volley的万箭齐发式请求（轻量级任务）
  * 3，手动移除网络队列中的任务（文件下载/上传除外）
  * 4，数据缓存，减少请求网络的频率，从而优化流量费用
@@ -37,6 +37,8 @@ public class Victor {
     private Deliver mDeliver = new Deliver();
     //双引擎控制器
     private EngineManager mEngineManager = new EngineManager(mDeliver);
+    //分界面缓存请求
+    private Map<String, LinkedList<Request<?>>> mAcceptRequest = new HashMap<>();
 
     private static final class SingletonHolder {
         static final Victor INSTANCE = new Victor();
