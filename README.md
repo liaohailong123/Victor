@@ -27,7 +27,13 @@ dependencies {
     	}
 
 
-Step1: 在第一个Activity中初始化
+Step1: AndroidManifest.xml添加权限，在第一个Activity中初始化
+
+
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
 
