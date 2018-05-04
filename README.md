@@ -9,6 +9,43 @@ Victor是一个网络请求库（Android）
 5，全局的Http请求首部字段
 6，全局的拦截器
 
+
+
+依赖方式：
+gradle
+
+
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+dependencies {
+    	        implementation 'com.github.liaohailong190:Victor:1.0.0'
+    	}
+
+
+
+maven
+
+
+<repositories>
+	<repository>
+		<id>jitpack.io</id>
+		<url>https://jitpack.io</url>
+	</repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.liaohailong190</groupId>
+    <artifactId>Victor</artifactId>
+    <version>1.0.0</version>
+</dependency>
+
+
+
 Step1: 在第一个Activity中初始化
 
 
