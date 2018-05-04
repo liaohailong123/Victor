@@ -12,7 +12,8 @@ Victor是一个网络请求库（Android）
 
 
 依赖方式：
-gradle
+Via Gradle:
+
 
 
 allprojects {
@@ -28,7 +29,7 @@ dependencies {
 
 
 
-maven
+Via Maven:
 
 
 <repositories>
