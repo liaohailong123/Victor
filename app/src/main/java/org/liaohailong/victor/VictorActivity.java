@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
-import org.liaohailong.library.victor.RequestPriority;
 import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.callback.FileCallback;
 import org.liaohailong.library.victor.callback.TextCallback;

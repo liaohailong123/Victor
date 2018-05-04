@@ -435,7 +435,6 @@ public final class Util {
             Log.e("Victor", "FileUtil cannot rename " + srcFile + " to " + dstFile);
             return false;
         }
-
         return true;
     }
 }
