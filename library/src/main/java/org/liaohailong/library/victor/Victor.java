@@ -1,7 +1,10 @@
 package org.liaohailong.library.victor;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -64,23 +67,80 @@ public class Victor {
         return mVictorConfig.getInterceptors();
     }
 
-    public TextRequestBuilder newTextRequest() {
-        return new TextRequestBuilder();
+    public RequestPresenter with(@NonNull Activity activity) {
+        return new RequestPresenter(activity.toString());
     }
 
-    public DownloadFileRequestBuilder newDownloadRequest() {
-        return new DownloadFileRequestBuilder();
+    public RequestPresenter with(@NonNull Fragment fragment) {
+        return new RequestPresenter(fragment.toString());
     }
 
-    public UploadFileRequestBuilder newUploadRequest() {
-        return new UploadFileRequestBuilder();
+    public RequestPresenter with(@NonNull android.support.v4.app.Fragment fragment) {
+        return new RequestPresenter(fragment.toString());
+    }
+
+    public void removeRequest(Request<?> request) {
+        mEngineManager.getTextEngine().removeRequest(request);
+        mEngineManager.getFileEngine().removeRequest(request);
+    }
+
+    public void removeRequest(@NonNull Activity activity) {
+        String key = activity.toString();
+        LinkedList<Request<?>> requests = mAcceptRequest.get(key);
+        for (Request<?> request : requests) {
+            removeRequest(request);
+        }
+        mAcceptRequest.remove(key);
+    }
+
+    public void removeRequest(@NonNull Fragment fragment) {
+        String key = fragment.toString();
+        LinkedList<Request<?>> requests = mAcceptRequest.get(key);
+        for (Request<?> request : requests) {
+            removeRequest(request);
+        }
+        mAcceptRequest.remove(key);
+    }
+
+    public void removeRequest(@NonNull android.support.v4.app.Fragment fragment) {
+        String key = fragment.toString();
+        LinkedList<Request<?>> requests = mAcceptRequest.get(key);
+        for (Request<?> request : requests) {
+            removeRequest(request);
+        }
+        mAcceptRequest.remove(key);
     }
 
     public void release() {
         mEngineManager.release();
     }
 
+    public final class RequestPresenter {
+
+        private final String key;
+
+        private RequestPresenter(String key) {
+            if (!mAcceptRequest.containsKey(key)) {
+                mAcceptRequest.put(key, new LinkedList<Request<?>>());
+            }
+            this.key = key;
+        }
+
+        public TextRequestBuilder newTextRequest() {
+            return new TextRequestBuilder(key);
+        }
+
+        public DownloadFileRequestBuilder newDownloadRequest() {
+            return new DownloadFileRequestBuilder(key);
+        }
+
+        public UploadFileRequestBuilder newUploadRequest() {
+            return new UploadFileRequestBuilder(key);
+        }
+    }
+
     public abstract class RequestBuilder {
+        private final String key;
         private String url;
         private String httpMethod = HttpInfo.GET;
         private Map<String, String> headers = new HashMap<>();
@@ -91,6 +151,10 @@ public class Victor {
         private IEngine mEngine;
         private boolean useCache = false;
         private boolean useCookie = false;
+
+        private RequestBuilder(String key) {
+            this.key = key;
+        }
 
         public RequestBuilder setUrl(String url) {
             this.url = url;
@@ -223,8 +287,10 @@ public class Victor {
                 Toast.makeText(applicationContext, "网络异常，请检测网络是否连接成功", Toast.LENGTH_LONG).show();
                 return request;
             }
-
+            //提交引擎，开始任务
             mEngine.addRequest(request);
+            //记录提交的任务，统一管理
+            mAcceptRequest.get(key).add(request);
             return request;
         }
 
@@ -257,6 +323,10 @@ public class Victor {
 
     public final class TextRequestBuilder extends RequestBuilder {
 
+        private TextRequestBuilder(String key) {
+            super(key);
+        }
+
         @Override
         protected IEngine getEngine() {
             return mEngineManager.getTextEngine();
@@ -264,6 +334,10 @@ public class Victor {
     }
 
     public class DownloadFileRequestBuilder extends RequestBuilder {
+
+        private DownloadFileRequestBuilder(String key) {
+            super(key);
+        }
 
         @Override
         public DownloadFileRequestBuilder setUrl(String url) {
@@ -308,6 +382,10 @@ public class Victor {
     public final class UploadFileRequestBuilder extends DownloadFileRequestBuilder {
         private String key;
         private File file;
+
+        private UploadFileRequestBuilder(String key) {
+            super(key);
+        }
 
         @Override
         public UploadFileRequestBuilder setUrl(String url) {

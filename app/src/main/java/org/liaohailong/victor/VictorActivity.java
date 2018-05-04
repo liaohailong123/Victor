@@ -82,17 +82,18 @@ public class VictorActivity extends AppCompatActivity {
     }
 
     private void init() {
-        /*refreshStartTime();
+        refreshStartTime();
         for (int i = 0; i < count; i++) {
             doRequest(i);
-        }*/
-        loadFile();
+        }
+//        loadFile();
     }
 
     private void doRequest(int offset) {
         int wallId = 1 + offset;
         final String wallIdStr = String.valueOf(wallId);
-        Victor.getInstance().newTextRequest()
+        Victor.getInstance().with(this)
+                .newTextRequest()
                 .doPost()
                 .setUrl(url)
                 .setUseCache(true)
@@ -116,7 +117,8 @@ public class VictorActivity extends AppCompatActivity {
     }
 
     private void loadFile() {
-        Victor.getInstance().newDownloadRequest()
+        Victor.getInstance().with(this)
+                .newDownloadRequest()
                 .setUrl("http://z.hidajian.com/Public/Api/images/charts/miaopai_1.mp4")
                 .doGet()
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
@@ -136,7 +138,7 @@ public class VictorActivity extends AppCompatActivity {
                     @Override
                     public void onPostLoaded(String url, String resultInfo) {
                         Toast.makeText(mTextView.getContext(), "onPostLoaded filePath = " + resultInfo, Toast.LENGTH_LONG).show();
-                        uploadFile(resultInfo);
+//                        uploadFile(resultInfo);
                     }
 
                     @Override
@@ -150,7 +152,8 @@ public class VictorActivity extends AppCompatActivity {
         //理论上最丰富的url
         //协议方案  登录信息       ip地址   端口号    文件路径  请求参数    片段标识符
         // http://user:password@192.168.1.38:8080/xxx/xxx/xxx?query=1&name=2#ch1
-        Victor.getInstance().newUploadRequest()
+        Victor.getInstance().with(this)
+                .newUploadRequest()
                 .setUrl("http://192.168.1.155/Adc/public/upload_file")
                 .addFile("filename", new File(filePath))
                 .addParam("params", "{\"type\":\"media\"}")
@@ -180,13 +183,13 @@ public class VictorActivity extends AppCompatActivity {
                     public void onLoadingError(String url, String info) {
                         Toast.makeText(mTextView.getContext(), "文件上传失败 info = " + info, Toast.LENGTH_LONG).show();
                     }
-
                 });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Victor.getInstance().release();
+        Victor.getInstance().removeRequest(this);
+//        Victor.getInstance().release();
     }
 }
