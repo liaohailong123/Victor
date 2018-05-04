@@ -6,12 +6,12 @@ import org.liaohailong.library.victor.callback.Callback;
 import org.liaohailong.library.victor.request.Request;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Describe as : 文件下载/上传引擎
@@ -23,7 +23,7 @@ public class FileEngine extends AbEngine {
     //文件下载引擎
     private ExecutorService mExecutorService;
     //缓存任务
-    private PriorityBlockingQueue<Request<?>> mCachingQueue = new PriorityBlockingQueue<>();
+    private LinkedList<Request<?>> mCachingQueue = new LinkedList<>();
     //记录任务
     private Map<Request<?>, Future<?>> mFutures = new HashMap<>();
 
@@ -85,6 +85,7 @@ public class FileEngine extends AbEngine {
             } finally {
                 synchronized (this) {
                     mFutures.remove(mRequest);
+                    mRequest = null;
                 }
             }
         }
@@ -99,7 +100,7 @@ public class FileEngine extends AbEngine {
         } finally {
             if (!mCachingQueue.isEmpty()) {
                 try {
-                    Request<?> nextRequest = mCachingQueue.take();
+                    Request<?> nextRequest = mCachingQueue.removeLast();
                     executeNextRequest(nextRequest);
                 } catch (Exception e) {
                     e.printStackTrace();

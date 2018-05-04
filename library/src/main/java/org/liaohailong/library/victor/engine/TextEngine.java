@@ -3,7 +3,6 @@ package org.liaohailong.library.victor.engine;
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.request.Request;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +19,7 @@ public class TextEngine extends AbEngine {
     private ExecutorService mNetWorkWorker;
     private ExecutorService mCacheWorker;
 
-    private Map<Request<?>, Future<?>> mAcceptRequest = new HashMap<>();
+    private Map<Request<?>, Future<?>> mAcceptRequest = new WeakHashMap<>();
 
     TextEngine(Deliver deliver, int size) {
         super(deliver, size);
@@ -44,19 +43,26 @@ public class TextEngine extends AbEngine {
         if (request == null) {
             return;
         }
-        if (request.isShouldCache()) {
-            Future<?> submit = mCacheWorker.submit(new CacheDispatcher(request, this, mDeliver));
-            mAcceptRequest.put(request, submit);
+        if (request.getHttpConnectSetting().isUseCache()) {
+            addCacheRequest(request);
         } else {
             addNetWorkRequest(request);
         }
+    }
+
+    private void addCacheRequest(Request<?> request) {
+        if (request == null) {
+            return;
+        }
+        Future<?> submit = mCacheWorker.submit(new CacheRunnable(request, this, mDeliver));
+        mAcceptRequest.put(request, submit);
     }
 
     void addNetWorkRequest(Request<?> request) {
         if (request == null) {
             return;
         }
-        Future<?> submit = mNetWorkWorker.submit(new NetworkDispatcher(request, this, mDeliver));
+        Future<?> submit = mNetWorkWorker.submit(new NetworkRunnable(request, this, mDeliver));
         mAcceptRequest.put(request, submit);
     }
 

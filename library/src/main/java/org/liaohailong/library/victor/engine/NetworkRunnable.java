@@ -15,22 +15,22 @@ import java.lang.ref.WeakReference;
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-class NetworkDispatcher implements Runnable {
+class NetworkRunnable implements Runnable {
 
     private WeakReference<TextEngine> mTextEngineWeak;
-    private WeakReference<? extends Request<?>> mRequestWeak;
+    private Request<?> mRequest;
     private WeakReference<Deliver> mDeliverWeak;
 
-    NetworkDispatcher(Request<?> request, TextEngine textEngine, Deliver deliver) {
+    NetworkRunnable(Request<?> request, TextEngine textEngine, Deliver deliver) {
         mTextEngineWeak = new WeakReference<>(textEngine);
-        mRequestWeak = new WeakReference<>(request);
+        mRequest = request;
         mDeliverWeak = new WeakReference<>(deliver);
     }
 
     @Override
     public void run() {
         try {
-            Request<?> request = mRequestWeak.get();
+            Request<?> request = mRequest;
             if (request == null || request.isCanceled) {
                 return;
             }
@@ -38,7 +38,7 @@ class NetworkDispatcher implements Runnable {
             //use cookie if need
             String cacheKey = request.getCacheKey();
             String cookie = Victor.getInstance().getConfig().getCookie(cacheKey);
-            if (request.isShouldCookie()) {
+            if (request.getHttpConnectSetting().isUseCookie()) {
                 HttpField httpHeader = request.getHttpHeader();
                 httpHeader.addParam(HttpInfo.COOKIE, cookie);
             }
@@ -60,7 +60,7 @@ class NetworkDispatcher implements Runnable {
 
             deliver.postResponse(response);
 
-            if (request.isShouldCache() && response.isSuccess()) {
+            if (request.getHttpConnectSetting().isUseCache() && response.isSuccess()) {
                 CacheWorker.saveCache(request, response);
             }
 
@@ -71,12 +71,10 @@ class NetworkDispatcher implements Runnable {
             e.printStackTrace();
         } finally {
             if (mTextEngineWeak.get() != null) {
-                if (mRequestWeak.get() != null) {
-                    mTextEngineWeak.get().removeRequest(mRequestWeak.get());
-                }
+                mTextEngineWeak.get().removeRequest(mRequest);
                 mTextEngineWeak.clear();
             }
-            mRequestWeak.clear();
+            mRequest = null;
             mDeliverWeak.clear();
         }
     }

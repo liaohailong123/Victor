@@ -49,7 +49,7 @@ public class VictorActivity extends AppCompatActivity {
         });
     }
 
-    private final static int count = 2000;
+    private final static int count = 4000;
     long start;
     long end;
 
@@ -63,7 +63,7 @@ public class VictorActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void showTimeCost() {
-        long during = end - start;
+        long during = end - start - 6000;//delay show time
         long seconds = during / 1000;
         mTextView.setText("一共耗时 " + seconds + " 秒" + "   一共发送" + count + "请求个任务");
     }
@@ -159,7 +159,6 @@ public class VictorActivity extends AppCompatActivity {
                 .addParam("params", "{\"type\":\"media\"}")
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
-                .setRequestPriority(RequestPriority.HIGHT)
                 .enqueue(new FileCallback() {
 
                     @Override

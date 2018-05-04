@@ -14,14 +14,14 @@ import java.lang.ref.WeakReference;
  * Created by LiaoHaiLong on 2018/5/1.
  */
 
-public class CacheDispatcher implements Runnable {
+public class CacheRunnable implements Runnable {
 
     private WeakReference<TextEngine> mTextEngineWeak;
     private WeakReference<Deliver> mDeliverWeak;
-    private WeakReference<? extends Request<?>> mRequestWeak;
+    private Request<?> mRequest;
 
-    CacheDispatcher(Request<?> request, TextEngine textEngine, Deliver deliver) {
-        mRequestWeak = new WeakReference<>(request);
+    CacheRunnable(Request<?> request, TextEngine textEngine, Deliver deliver) {
+        mRequest = request;
         mTextEngineWeak = new WeakReference<>(textEngine);
         mDeliverWeak = new WeakReference<>(deliver);
     }
@@ -29,7 +29,7 @@ public class CacheDispatcher implements Runnable {
     @Override
     public void run() {
         try {
-            Request<?> request = mRequestWeak.get();
+            Request<?> request = mRequest;
             if (request == null || request.isCanceled) {
                 return;
             }
@@ -41,8 +41,9 @@ public class CacheDispatcher implements Runnable {
                     @Override
                     public void run() {
                         if (mTextEngineWeak.get() != null) {
-                            mTextEngineWeak.get().addNetWorkRequest(mRequestWeak.get());
+                            mTextEngineWeak.get().addNetWorkRequest(mRequest);
                         }
+                        mRequest = null;
                     }
                 };
                 deliver.postResponse(runnable);
@@ -54,8 +55,9 @@ public class CacheDispatcher implements Runnable {
                     @Override
                     public void run() {
                         if (mTextEngineWeak.get() != null) {
-                            mTextEngineWeak.get().addNetWorkRequest(mRequestWeak.get());
+                            mTextEngineWeak.get().addNetWorkRequest(mRequest);
                         }
+                        mRequest = null;
                     }
                 };
                 deliver.postResponse(runnable);

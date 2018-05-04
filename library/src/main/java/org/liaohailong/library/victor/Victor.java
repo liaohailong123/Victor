@@ -25,15 +25,15 @@ import java.util.Map;
  * Describe as: 基于HttpUrlConnection封装的网络请求库
  * 基本功能：
  * 1，文件下载（断点） + 文件上传
- * 2，海量文本数据请求（轻量级任务）
- * 3，手动移除网络队列中的任务
+ * 2，短时间内：海量（10秒400条）文本数据请求
+ * 3，手动移除队列中的请求
  * 4，数据缓存，优化流量
  * 5，全局的Http请求首部字段
  * 6，全局的拦截器
  * Created by LiaoHaiLong on 2018/4/30.
  */
 
-public class Victor {
+public final class Victor {
     //全局基本配置
     private VictorConfig mVictorConfig;
     //数据跨线程传送门
@@ -43,8 +43,12 @@ public class Victor {
     //分界面缓存请求
     private Map<String, LinkedList<Request<?>>> mAcceptRequest = new HashMap<>();
 
+    private Victor() {
+        //should be single instance
+    }
+
     private static final class SingletonHolder {
-        static final Victor INSTANCE = new Victor();
+        private static final Victor INSTANCE = new Victor();
     }
 
     public static Victor getInstance() {
@@ -145,10 +149,8 @@ public class Victor {
         private String httpMethod = HttpInfo.GET;
         private Map<String, String> headers = new HashMap<>();
         private Map<String, String> params = new HashMap<>();
-        private RequestPriority requestPriority = RequestPriority.MIDDLE;
         private int connectTimeOut = 0;
         private int readTimeOut = 0;
-        private IEngine mEngine;
         private boolean useCache = false;
         private boolean useCookie = false;
 
@@ -188,11 +190,6 @@ public class Victor {
 
         public RequestBuilder addParams(Map<String, String> params) {
             this.params.putAll(params);
-            return this;
-        }
-
-        public RequestBuilder setRequestPriority(RequestPriority requestPriority) {
-            this.requestPriority = requestPriority;
             return this;
         }
 
@@ -261,25 +258,16 @@ public class Victor {
             HttpConnectSetting mDefaultHttpConnectSetting = mVictorConfig.getHttpConnectSetting();
             HttpConnectSetting httpConnectSetting = new HttpConnectSetting()
                     .setConnectTimeout(connectTimeOut > 0 ? connectTimeOut : mDefaultHttpConnectSetting.getConnectTimeout())
-                    .setReadTimeout(readTimeOut > 0 ? readTimeOut : mDefaultHttpConnectSetting.getReadTimeout());
+                    .setReadTimeout(readTimeOut > 0 ? readTimeOut : mDefaultHttpConnectSetting.getReadTimeout())
+                    .setUseCache(useCache)
+                    .setUseCookie(useCookie);
 
-            if (mEngine == null) {
-                mEngine = getEngine();
-                mEngine.start();
-            }
-
-            Request<T> request = getRequest(
-                    requestPriority,
-                    order,
-                    useCache,
-                    useCookie,
-                    url,
+            Request<T> request = getRequest(url,
                     httpMethod,
                     httpHeader,
                     httpParams,
                     httpConnectSetting,
-                    callback,
-                    mEngine);
+                    callback);
 
             //判断是否存在网络连接情况
             Context applicationContext = getConfig().getApplicationContext();
@@ -288,7 +276,9 @@ public class Victor {
                 return request;
             }
             //提交引擎，开始任务
-            mEngine.addRequest(request);
+            IEngine engine = getEngine();
+            engine.start();
+            engine.addRequest(request);
             //记录提交的任务，统一管理
             mAcceptRequest.get(key).add(request);
             return request;
@@ -296,28 +286,18 @@ public class Victor {
 
         protected abstract IEngine getEngine();
 
-        protected <T> Request<T> getRequest(RequestPriority requestPriority,
-                                            int order,
-                                            boolean shouldCache,
-                                            boolean shouldCookie,
-                                            String url,
+        protected <T> Request<T> getRequest(String url,
                                             String httpMethod,
                                             HttpField httpHeader,
                                             HttpField httpParams,
                                             HttpConnectSetting httpConnectSetting,
-                                            Callback<T> callback,
-                                            IEngine engine) {
-            return new Request<>(requestPriority,
-                    order,
-                    shouldCache,
-                    shouldCookie,
-                    url,
+                                            Callback<T> callback) {
+            return new Request<>(url,
                     httpMethod,
                     httpHeader,
                     httpParams,
                     httpConnectSetting,
-                    callback,
-                    engine);
+                    callback);
         }
     }
 
@@ -347,33 +327,22 @@ public class Victor {
 
         @Override
         protected IEngine getEngine() {
-            FileEngine fileEngine = mEngineManager.getFileEngine();
-            fileEngine.start();
-            return fileEngine;
+            return mEngineManager.getFileEngine();
         }
 
         @Override
-        protected <T> Request<T> getRequest(RequestPriority requestPriority,
-                                            int order,
-                                            boolean shouldCache,
-                                            boolean shouldCookie,
-                                            String url,
+        protected <T> Request<T> getRequest(String url,
                                             String httpMethod,
                                             HttpField httpHeader,
                                             HttpField httpParams,
                                             HttpConnectSetting httpConnectSetting,
-                                            Callback<T> callback, IEngine engine) {
-            FileRequest<T> tRequest = new FileRequest<>(requestPriority,
-                    order,
-                    shouldCache,
-                    shouldCookie,
-                    url,
+                                            Callback<T> callback) {
+            FileRequest<T> tRequest = new FileRequest<>(url,
                     httpMethod,
                     httpHeader,
                     httpParams,
                     httpConnectSetting,
-                    callback,
-                    engine);
+                    callback);
             tRequest.setDownload(true);
             return tRequest;
         }
@@ -405,17 +374,12 @@ public class Victor {
         }
 
         @Override
-        protected <T> Request<T> getRequest(RequestPriority requestPriority,
-                                            int order,
-                                            boolean shouldCache,
-                                            boolean shouldCookie,
-                                            String url,
+        protected <T> Request<T> getRequest(String url,
                                             String httpMethod,
                                             HttpField httpHeader,
                                             HttpField httpParams,
                                             HttpConnectSetting httpConnectSetting,
-                                            Callback<T> callback,
-                                            IEngine engine) {
+                                            Callback<T> callback) {
 
             if (TextUtils.isEmpty(key)) {
                 throw new IllegalArgumentException("UploadFileRequestBuilder : key can not be empty!");
@@ -430,20 +394,14 @@ public class Victor {
                 throw new IllegalArgumentException("UploadFileRequestBuilder : file is isDirectory ? are you kidding me ?");
             }
 
-            FileRequest<T> request = (FileRequest<T>) super.getRequest(requestPriority,
-                    order,
-                    shouldCache,
-                    shouldCookie,
-                    url,
+            FileRequest<T> request = (FileRequest<T>) super.getRequest(url,
                     HttpInfo.POST,
                     httpHeader,
                     httpParams,
                     httpConnectSetting,
-                    callback,
-                    engine);
+                    callback);
             request.addFiles(key, file);
             request.setDownload(false);
-            request.setMultiple(false);
             return request;
         }
     }

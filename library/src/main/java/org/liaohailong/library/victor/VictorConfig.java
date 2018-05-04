@@ -110,7 +110,7 @@ public class VictorConfig {
         return this;
     }
 
-    public boolean isLogEnable() {
+    boolean isLogEnable() {
         return isLogEnable;
     }
 

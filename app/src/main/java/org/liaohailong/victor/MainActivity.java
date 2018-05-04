@@ -2,6 +2,7 @@ package org.liaohailong.victor;
 
 import android.Manifest;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,9 +30,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
         if (Util.requestPermissionIfNeed(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, "", 0)) {
+            String cacheDir = Environment.getExternalStorageDirectory().getAbsolutePath();
             //初始化基本配置
             Victor.getInstance().initConfig(getApplicationContext())
-                    .createCacheDirectory("", 50 * 1024 * 1024)
+                    .createCacheDirectory(cacheDir, 50 * 1024 * 1024)
                     .setConnectTimeout(3 * 1000)
                     .setReadTimeout(3 * 1000)
                     .setLogEnable(true)

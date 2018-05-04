@@ -6,8 +6,11 @@ package org.liaohailong.library.victor;
  */
 
 public class HttpConnectSetting {
+    private static final int MIN_TIME_OUT = 2000;
     private int mConnectTimeout;
     private int mReadTimeout;
+    private boolean useCache = false;
+    private boolean useCookie = false;
 
     HttpConnectSetting() {
         mConnectTimeout = 2 * 1000;
@@ -24,11 +27,29 @@ public class HttpConnectSetting {
         return this;
     }
 
+    HttpConnectSetting setUseCache(boolean useCache) {
+        this.useCache = useCache;
+        return this;
+    }
+
+    HttpConnectSetting setUseCookie(boolean useCookie) {
+        this.useCookie = useCookie;
+        return this;
+    }
+
+    public boolean isUseCache() {
+        return useCache;
+    }
+
+    public boolean isUseCookie() {
+        return useCookie;
+    }
+
     public int getConnectTimeout() {
-        return mConnectTimeout;
+        return mConnectTimeout <= MIN_TIME_OUT ? MIN_TIME_OUT : mConnectTimeout;
     }
 
     public int getReadTimeout() {
-        return mReadTimeout;
+        return mReadTimeout <= MIN_TIME_OUT ? MIN_TIME_OUT : mReadTimeout;
     }
 }
