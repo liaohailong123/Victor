@@ -13,6 +13,13 @@ Step1: 在第一个Activity中初始化
 
 
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        init();
+    }
+
     private void init() {
         //初始化需要SD卡写入权限，控制缓存
         if (Util.requestPermissionIfNeed(this, Manifest.permission.WRITE_EXTERNAL_STORAGE, "", 0)) {
