@@ -170,5 +170,9 @@ Step5:移除那些已经提交的，但没来得及开始的请求任务
 
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         Victor.getInstance().removeRequest(this);//清除在当前Activity or Fragment 添加的请求任务
         Victor.getInstance().release();//清除所有任务，释放所有线程资源
+    }
