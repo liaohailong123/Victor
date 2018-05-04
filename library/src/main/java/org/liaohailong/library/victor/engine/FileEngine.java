@@ -2,7 +2,9 @@ package org.liaohailong.library.victor.engine;
 
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.LogMan;
+import org.liaohailong.library.victor.Victor;
 import org.liaohailong.library.victor.callback.Callback;
+import org.liaohailong.library.victor.interceptor.Interceptor;
 import org.liaohailong.library.victor.request.Request;
 
 import java.util.HashMap;
@@ -94,6 +96,10 @@ public class FileEngine extends AbEngine {
     private void executeNextRequest(Request<?> request) {
         try {
             FileLoader fileLoader = FileLoader.create(request, mDeliver);
+            //interceptor
+            for (Interceptor interceptor : Victor.getInstance().getInterceptors()) {
+                interceptor.process(request);
+            }
             fileLoader.doWork();
         } catch (Exception ex) {
             ex.printStackTrace();
