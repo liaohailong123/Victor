@@ -51,7 +51,7 @@ Step2: 文本请求
 
 
 
-        Victor.getInstance().with(this)
+        Victor.getInstance().with(this)//记录任务所在的界面 Activity or Fragment
                 .newTextRequest()//创建一个文本数据的请求
                 .doPost()//选择Http请求方式
                 .setUrl(url)//设置Url
@@ -59,13 +59,11 @@ Step2: 文本请求
                 .setUseCookie(true)//是否开启Cookie
                 .addParam("param", param)//添加参数
                 .enqueue(new TextCallback<JsonObject>() {
-                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(JsonObject result) {
                         //do something you want
                     }
 
-                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onFailure(int code, String error) {
                         //do something you want
@@ -78,7 +76,7 @@ Step3: 文件下载(如果资源服务器支持请求部分资源，response cod
 
 
 
-        Victor.getInstance().with(this)
+        Victor.getInstance().with(this)//记录任务所在的界面 Activity or Fragment
                 .newDownloadRequest()//创建一个文件下载请求
                 .setUrl("url")//设置文件URL
                 .doGet()//使用GET请求
@@ -90,14 +88,13 @@ Step3: 文件下载(如果资源服务器支持请求部分资源，response cod
                         //do something you want
                     }
 
-                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onLoading(String url, String tempFilePath, int progress) {
                         //do something you want; progress is [0,100]
                     }
 
                     @Override
-                    public void onPostLoaded(String url, String resultInfo) {
+                    public void onPostLoaded(String url, String filePath) {
                        //do something you want
                     }
 
@@ -113,7 +110,7 @@ Step4: 文件上传
 
 
 
-        Victor.getInstance().with(this)
+        Victor.getInstance().with(this)//记录任务所在的界面 Activity or Fragment
                 .newUploadRequest()//创建一个文件上传请求
                 .setUrl("url")//设置文件URL
                 .addFile("file", new File(filePath))//添加需要上传的文件（仅支持单个文件上传）
@@ -127,7 +124,6 @@ Step4: 文件上传
                         //do something you want
                     }
 
-                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onLoading(String url, String tempFilePath, int progress) {
                         //do something you want; progress is [0,100]
