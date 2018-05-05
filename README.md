@@ -2,27 +2,30 @@
 
 Victor是一个网络请求库（Android）
 基本功能：
+
 1，文件下载（断点） + 文件上传
+
 2，短时间内：海量文本数据请求
+
 3，手动移除队列中的请求
+
 4，数据缓存，优化流量
+
 5，全局的Http请求首部字段
+
 6，全局的拦截器
 
 
-
-依赖方式：
-Gradle:
+依赖方式 Gradle：
 
 
-
-allprojects {
-		repositories {
-			maven { url 'https://jitpack.io' }
-		}
+    allprojects {
+		    repositories {
+			    maven { url 'https://jitpack.io' }
+		    }
 	}
 
-dependencies {
+    dependencies {
     	        implementation 'com.github.liaohailong190:Victor:1.0.0'
     	}
 
