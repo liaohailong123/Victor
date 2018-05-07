@@ -31,7 +31,6 @@ public class VictorActivity extends AppCompatActivity {
         context.startActivity(intent);
     }
 
-    private static final String url = "https://z.hidajian.com/api/charts/wall_data";
     private TextView mTextView;
 
     @Override
@@ -83,33 +82,31 @@ public class VictorActivity extends AppCompatActivity {
     private void init() {
         refreshStartTime();
         for (int i = 0; i < count; i++) {
-            doRequest(i);
+            doRequest();
         }
 //        loadFile();
     }
 
-    private void doRequest(int offset) {
-        int wallId = 1 + offset;
-        final String wallIdStr = String.valueOf(wallId);
+    private void doRequest() {
         Victor.getInstance().with(this)
                 .newTextRequest()
                 .doPost()
-                .setUrl(url)
+                .setUrl("url")
                 .setUseCache(true)
                 .setUseCookie(true)
-                .addParam("wall", wallIdStr)
+                .addParam("param", "param")
                 .enqueue(new TextCallback<JsonObject>() {
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onSuccess(JsonObject result) {
-                        mTextView.setText("onSuccess wallId = " + wallIdStr + "   \n" + result.toString());
+                        mTextView.setText("onSuccess result = " + result.toString());
                         postTimeCost();
                     }
 
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onFailure(int code, String error) {
-                        mTextView.setText("onFailure wallId = " + wallIdStr);
+                        mTextView.setText("onFailure error = " + error);
                         postTimeCost();
                     }
                 });
@@ -153,9 +150,9 @@ public class VictorActivity extends AppCompatActivity {
         // http://user:password@192.168.1.38:8080/xxx/xxx/xxx?query=1&name=2#ch1
         Victor.getInstance().with(this)
                 .newUploadRequest()
-                .setUrl("http://192.168.1.155/Adc/public/upload_file")
+                .setUrl("url")
                 .addFile("filename", new File(filePath))
-                .addParam("params", "{\"type\":\"media\"}")
+                .addParam("params", "params")
                 .setConnectTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .setReadTimeOut((int) DateUtils.DAY_IN_MILLIS)
                 .enqueue(new FileCallback() {
