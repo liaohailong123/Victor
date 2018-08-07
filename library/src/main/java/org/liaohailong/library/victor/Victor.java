@@ -34,6 +34,8 @@ import java.util.Map;
  */
 
 public final class Victor {
+    //全局标记号
+    private static final String DEFAULT_TAG = "DEFAULT_TAG";
     //全局基本配置
     private VictorConfig mVictorConfig;
     //数据跨线程传送门
@@ -69,6 +71,14 @@ public final class Victor {
 
     public LinkedList<Interceptor> getInterceptors() {
         return mVictorConfig.getInterceptors();
+    }
+
+    public RequestPresenter with() {
+        return new RequestPresenter(DEFAULT_TAG);
+    }
+
+    public RequestPresenter with(@NonNull Context context) {
+        return new RequestPresenter(context.toString());
     }
 
     public RequestPresenter with(@NonNull Activity activity) {
