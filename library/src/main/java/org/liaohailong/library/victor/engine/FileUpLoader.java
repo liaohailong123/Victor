@@ -1,9 +1,10 @@
 package org.liaohailong.library.victor.engine;
 
 
+import com.google.gson.JsonObject;
+
 import org.liaohailong.library.victor.Deliver;
 import org.liaohailong.library.victor.HttpField;
-import org.liaohailong.library.victor.LogMan;
 import org.liaohailong.library.victor.Response;
 import org.liaohailong.library.victor.Util;
 import org.liaohailong.library.victor.callback.Callback;
@@ -122,9 +123,9 @@ class FileUpLoader<Type> extends FileLoader<Type> {
             int code = connection.getResponseCode();
             if (code < HttpURLConnection.HTTP_BAD_REQUEST) {
                 is = connection.getInputStream();
-                onPostLoaded("");
                 //利用Json转移字符
-                final String result = Util.stringToJson(Util.streamToString(is)).toString();
+                JsonObject jsonObject = Util.stringToJson(Util.streamToString(is));
+                final String result = jsonObject != null ? jsonObject.toString() : "";
                 final String url = mRequest.getUrl();
                 final Callback<Type> callback = mRequest.getCallback();
                 mDeliver.postResponse(new Runnable() {
